@@ -3,28 +3,24 @@
 public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
     sbyte ClustersPerFileRecordSegment, sbyte ClustersPerIndexBlock, long VolumeSerialNumber)
 {
-    public static ExtendedBpb CreateFromStream(BinaryReader reader)
+    public static ExtendedBpb Parse(ReadOnlySpan<byte> rawExBpb)
     {
-        if (reader.BaseStream.Position != 0x24)
-        {
-            throw new InvalidStartingPositionException(0x24, reader.BaseStream.Position);
-        }
-
-        _ = reader.ReadInt32(); // unused
-        var totalSectors = reader.ReadLongLong();
-        var logicalClusterForMft = reader.ReadLongLong();
-        var logicalClusterForMftMirr = reader.ReadLongLong();
+        var reader = new SpanBinaryReader(rawExBpb);
+        reader.Skip(4);
+        var totalSectors = reader.ReadInt64();
+        var logicalClusterForMft = reader.ReadInt64();
+        var logicalClusterForMftMirr = reader.ReadInt64();
         var clustersPerFileRecordSegment = reader.ReadSByte();
-        _ = reader.ReadBytes(3); // unused
+        reader.Skip(3); // unused
         var clustersPerIndexBlock = reader.ReadSByte();
-        _ = reader.ReadBytes(3); // unused
-        var volumeSerialNumber = reader.ReadLongLong();
+        reader.Skip(3); // unused
+        var volumeSerialNumber = reader.ReadInt64();
         for (int i = 0; i < 4; ++i) // checksum
         {
             var shouldBeZero = reader.ReadByte();
             if (shouldBeZero != 0)
             {
-                throw new ShouldBeZeroException(shouldBeZero, reader.BaseStream.Position);
+                throw new ShouldBeZeroException(shouldBeZero, reader.Position);
             }
         }
 

@@ -1,18 +1,17 @@
 ﻿namespace FileSystemTraverser.MasterFileTable.Header;
-public record struct MftRecordHeader(MultiSectorHeader MultiSectorHeader, ulong LogFileSequenceNumber, ushort SequenceNumber,
-    ushort ReferenceCount, ushort AttributesOffset, ushort EntryFlags, uint UsedEntrySize, uint TotalEntrySize,
-    MftSegmentReference MftSegmentReference, ushort FirstAttributeId, byte[] UpdateSequenceArray)
+public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequenceNumber, ushort SequenceNumber,
+    ushort ReferenceCount, ushort AttributesOffset, MftRecordHeaderFlags EntryFlags, uint UsedEntrySize, uint TotalEntrySize,
+    FileReference FileReference, ushort FirstAttributeId, byte[] FixUp)
 {
-    public static MftRecordHeader CreateFromStream(BinaryReader reader)
+    // TODO: ^ "Type with suspicious equality is used as a member of a record type?" :raised_eyebrow: ^
+    public static MftRecordHeader CreateFromStream(ref SpanBinaryReader reader)
     {
-        var startPosition = reader.BaseStream.Position;
-        
-        var multiSectorHeader = MultiSectorHeader.CreateFromStream(reader);
-        if (multiSectorHeader.Signature is [0, 0, 0, 0])
+        var rawHeader = reader.ReadBytes(8);
+        var header = MultiSectorHeader.Parse(rawHeader);
+        if (header.Signature == MftSignature.Zeroes)
         {
-            return default;
+            return new MftRecordHeader { Header = header };
         }
-        
         var logfileSequenceNumber = reader.ReadUInt64();
         var sequenceNumber = reader.ReadUInt16();
         var referenceCount = reader.ReadUInt16();
@@ -20,12 +19,26 @@ public record struct MftRecordHeader(MultiSectorHeader MultiSectorHeader, ulong 
         var entryFlags = reader.ReadUInt16();
         var usedEntrySize = reader.ReadUInt32();
         var totalEntrySize = reader.ReadUInt32();
-        var mftSegmentReference = MftSegmentReference.CreateFromStream(reader);
+        var rawReference = reader.ReadBytes(8);
+        var mftSegmentReference = FileReference.Parse(rawReference);
         var firstAttributeId = reader.ReadUInt16();
-        reader.BaseStream.Position = startPosition + multiSectorHeader.UpdateSequenceOffset; // move position to the update sequence array
-        var updateSequenceArray = reader.ReadBytes(multiSectorHeader.UpdateSequenceLength);
-        reader.BaseStream.Position = startPosition + attributesOffset; // move position to the first attribute
+        reader.Position = header.FixUpOffset; // move position to the update sequence array
+        var fixUp = reader.ReadBytes(header.FixUpLength);
+        reader.Position = attributesOffset; // move position to the first attribute
+        // TODO: there can be 2 additional fields depending on the OS version but I will ignore them for now
+        // Maybe I should pass the size like in the StandardInformation
         
-        return new MftRecordHeader(multiSectorHeader, logfileSequenceNumber, sequenceNumber, referenceCount, attributesOffset, entryFlags, usedEntrySize, totalEntrySize, mftSegmentReference, firstAttributeId, updateSequenceArray);
+        return new MftRecordHeader(header, logfileSequenceNumber, sequenceNumber, referenceCount, attributesOffset, 
+            (MftRecordHeaderFlags)entryFlags, usedEntrySize, totalEntrySize, mftSegmentReference, firstAttributeId, 
+            fixUp.ToArray());
     }
+}
+
+[Flags]
+public enum MftRecordHeaderFlags : ushort
+{
+    InUse = 0x01,
+    IsDirectory = 0x02,
+    IsExtension = 0x04,
+    IsViewIndex = 0x08
 }

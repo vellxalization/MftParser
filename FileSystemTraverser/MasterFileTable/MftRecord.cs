@@ -5,27 +5,25 @@ namespace FileSystemTraverser.MasterFileTable;
 
 public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attributes)
 {
-    public static MftRecord CreateFromStream(BinaryReader reader, int mftRecordSize)
+    public static MftRecord Parse(ReadOnlySpan<byte> rawMftRecord)
     {
-        var startPos = reader.BaseStream.Position;
-        
-        var header = MftRecordHeader.CreateFromStream(reader);
-        if (header == default)
+        var reader = new SpanBinaryReader(rawMftRecord);
+        var header = MftRecordHeader.CreateFromStream(ref reader);
+        reader.Position = header.AttributesOffset;
+        var attributes = new List<MftAttribute>(1);
+        var attributesSpan = reader.ReadBytes((int)header.UsedEntrySize - reader.Position);
+        var attribute = MftAttribute.Parse(attributesSpan);
+        while (attribute.Header.Type != AttributeType.EndOfAttributeList)
         {
-            reader.BaseStream.Position = startPos + mftRecordSize;
-            return default;
+            attributes.Add(attribute);
+            var splitPoint = (int)attribute.Header.Size; 
+            // ^ using this to avoid headache of constantly caching ^
+            // starting position of the reader
+            attributesSpan = attributesSpan.Slice(splitPoint);
+            attribute = MftAttribute.Parse(attributesSpan);
         }
         
-        var attrs = new List<MftAttribute>(1);
-        var attribute = MftAttribute.CreateFromStream(reader);
-        while (attribute.Header.Type != AttributeType.Unknown)
-        {
-            attrs.Add(attribute);
-            attribute = MftAttribute.CreateFromStream(reader);
-        }
-        var bytesRead = (int)(reader.BaseStream.Position - startPos);
-        _ = reader.BaseStream.Position += mftRecordSize - bytesRead; // padding
-        
-        return new MftRecord(header, attrs.ToArray());
+        // rest is unused bytes
+        return new MftRecord(header, attributes.ToArray());
     }
 }

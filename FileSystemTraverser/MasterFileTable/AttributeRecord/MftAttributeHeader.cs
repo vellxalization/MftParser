@@ -1,14 +1,14 @@
 ﻿namespace FileSystemTraverser.MasterFileTable.AttributeRecord;
 
-public record struct MftAttributeHeader(AttributeType Type, uint Size, byte NonresidentFlag, byte NameSize, ushort NameOffset,
-    ushort DataFlags, ushort AttributeId, Resident Resident, Nonresident Nonresident)
+public record struct MftAttributeHeader(AttributeType Type, uint Size, bool IsNonresident, byte NameSize, 
+    ushort NameOffset, AttributeHeaderFlags DataFlags, ushort AttributeId, Resident Resident, Nonresident Nonresident)
 {
-    public static MftAttributeHeader CreateFromStream(BinaryReader reader)
+    public static MftAttributeHeader Parse(ref SpanBinaryReader reader)
     {
         var type = reader.ReadUInt32();
         if (type == 0xffffffff)
         {
-            return new MftAttributeHeader(AttributeType.Unknown, 0, 0, 0, 0, 0, 0, default, default);
+            return new MftAttributeHeader(AttributeType.EndOfAttributeList, 0, false, 0, 0, 0, 0, default, default);
         }
         
         var size = reader.ReadUInt32();
@@ -19,18 +19,30 @@ public record struct MftAttributeHeader(AttributeType Type, uint Size, byte Nonr
         var attributeId = reader.ReadUInt16();
         if (nonresidentFlag == 0)
         {
-            var resident = Resident.CreateFromStream(reader);
-            return new MftAttributeHeader((AttributeType)type, size, nonresidentFlag, nameSize, nameOffset, dataFlags, attributeId, resident, default);
+            var rawResident = reader.ReadBytes(8);
+            var resident = Resident.CreateFromStream(rawResident);
+            return new MftAttributeHeader((AttributeType)type, size, false, nameSize, nameOffset,
+                (AttributeHeaderFlags)dataFlags, attributeId, resident, default);
         }
 
-        var nonresident = Nonresident.CreateFromStream(reader);
-        return new MftAttributeHeader((AttributeType)type, size, nonresidentFlag, nameSize, nameOffset, dataFlags, attributeId, default, nonresident);
+        var rawNonresident = reader.ReadBytes(56); // it can be either 48 or 56 bytes in size. 
+        var nonresident = Nonresident.Parse(rawNonresident);
+        return new MftAttributeHeader((AttributeType)type, size, true, nameSize, nameOffset, 
+            (AttributeHeaderFlags)dataFlags, attributeId, default, nonresident);
     }
+}
+
+[Flags]
+public enum AttributeHeaderFlags
+{
+    IsCompressed = 0x0001,
+    FlagCompressionMask = 0x00ff,
+    IsEncrypted = 0x4000,
+    IsSparse = 0x8000
 }
 
 public enum AttributeType
 {
-    Unknown = 0,
     StandardInformation = 0x10,
     AttributeList = 0x20,
     FileName = 0x30,
@@ -45,5 +57,6 @@ public enum AttributeType
     ReparsePoint = 0xC0,
     EaInformation = 0xD0,
     Ea = 0xE0,
-    LoggedUtilityStream = 0x100
+    LoggedUtilityStream = 0x100,
+    EndOfAttributeList = 0xFF
 }
