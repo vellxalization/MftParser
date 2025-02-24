@@ -1,6 +1,6 @@
 ﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 
-public record struct AccessControlEntry(AceType Type, AceFlags Flags, ushort Size, uint AccessMask, SecurityId SecurityId)
+public record struct AccessControlEntry(AceType Type, AceFlags Flags, ushort Size, AccessMask AccessMask, SecurityId SecurityId)
 {
     public static AccessControlEntry CreateFromStream(ref SpanBinaryReader reader)
     {
@@ -8,11 +8,10 @@ public record struct AccessControlEntry(AceType Type, AceFlags Flags, ushort Siz
         var type = (AceType)reader.ReadByte();
         var flags = (AceFlags)reader.ReadByte();
         var size = reader.ReadUInt16();
-        // TODO: create a struct to properly represent access mask
         var accessMask = reader.ReadUInt32();
         var sId = reader.ReadBytes(size - (reader.Position - start));
         
-        return new AccessControlEntry(type, flags, size, accessMask, new SecurityId(sId.ToArray()));
+        return new AccessControlEntry(type, flags, size, new AccessMask((int)accessMask), new SecurityId(sId.ToArray()));
     }
 }
 
