@@ -3,9 +3,9 @@
 public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags, 
     byte[] Content, ulong ChildVcn)
 {
-    public static IndexEntry CreateFromStream(BinaryReader reader)
+    public static IndexEntry Parse(ReadOnlySpan<byte> rawEntry)
     {
-        var start = reader.BaseStream.Position;
+        var reader = new SpanBinaryReader(rawEntry);
         var bytes = reader.ReadBytes(8);
         var entryLength = reader.ReadUInt16();
         var contentLength = reader.ReadUInt16();
@@ -13,14 +13,12 @@ public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort Content
         var content = reader.ReadBytes(contentLength);
         if (!flags.HasFlag(IndexEntryFlags.ChildExists))
         {
-            reader.BaseStream.Position = start + entryLength;
-            return new IndexEntry(bytes, entryLength, contentLength, flags, content, 0);
+            return new IndexEntry(bytes.ToArray(), entryLength, contentLength, flags, content.ToArray(), 0);
         }
-        
-        reader.BaseStream.Position = start + (entryLength - 8);
+
+        reader.Position = entryLength - 8;
         var childVcn = reader.ReadUInt64();
-        reader.BaseStream.Position = start + entryLength;
-        return new IndexEntry(bytes, entryLength, contentLength, flags, content, childVcn);
+        return new IndexEntry(bytes.ToArray(), entryLength, contentLength, flags, content.ToArray(), childVcn);
     }
 }
 

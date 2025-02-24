@@ -1,10 +1,12 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData._BITMAP;
+﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.BitMap;
 
 public record struct Bitmap(byte[] Data)
 {
-    public static Bitmap CreateFromData(ref byte[] data)
+    public static Bitmap CreateFromRawData(RawAttributeData rawData)
     {
-        return new Bitmap(data);
+        return new Bitmap(rawData.Data);
     }
 
     public bool IsSet(int bitIndex)

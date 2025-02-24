@@ -1,17 +1,18 @@
 ﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData._INDEX_ROOT;
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.IndexRoot;
 
 public record struct IndexRootHeader(AttributeType AttributeType, CollationRule CollationRule, uint IndexRecordByteSize, 
     byte IndexRecordClusterSize)
 {
-    public static IndexRootHeader CreateFromStream(BinaryReader reader)
+    public static IndexRootHeader Parse(ReadOnlySpan<byte> rawHeader)
     {
+        var reader = new SpanBinaryReader(rawHeader);
         var attributeType = reader.ReadUInt32();
         var collationRule = reader.ReadUInt32();
         var indexRecordByteSize = reader.ReadUInt32();
         var indexRecordClusterSize = reader.ReadByte();
-        reader.BaseStream.Position += 3; // padding
+        // last 3 bytes are padding 
 
         return new IndexRootHeader((AttributeType)attributeType, (CollationRule)collationRule, indexRecordByteSize, indexRecordClusterSize);
     }

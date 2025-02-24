@@ -1,15 +1,16 @@
 ﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct IndexNodeHeader(uint EntryListOffset, uint EntryListEndOffset, uint EntryListBufferEndOffset, 
-    uint Flag)
+    bool HasChildren)
 {
-    public static IndexNodeHeader CreateFromStream(BinaryReader reader)
+    public static IndexNodeHeader Parse(ReadOnlySpan<byte> rawHeader)
     {
+        var reader = new SpanBinaryReader(rawHeader);
         var entryListOffset = reader.ReadUInt32();
         var entryListEndOffset = reader.ReadUInt32();
         var entryListBufferEndOffset = reader.ReadUInt32();
         var flag = reader.ReadUInt32();
 
-        return new IndexNodeHeader(entryListOffset, entryListEndOffset, entryListBufferEndOffset, flag);
+        return new IndexNodeHeader(entryListOffset, entryListEndOffset, entryListBufferEndOffset, flag == 1);
     }
 }

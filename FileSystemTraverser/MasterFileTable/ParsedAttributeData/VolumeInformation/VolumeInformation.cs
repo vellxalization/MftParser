@@ -1,11 +1,14 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData._VOLUME_INFORMATION;
+﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.VolumeInformation;
 
 public record struct VolumeInformation(byte MajorVersion, byte MinorVersion, VolumeInformationFlags Flags)
 {
-    public static VolumeInformation CreateFromData(byte[] data)
+    public static VolumeInformation CreateFromRawData(RawAttributeData rawData)
     {
-        using var reader = new BinaryReader(new MemoryStream(data));
-        reader.BaseStream.Position += 8; // supposedly zeroes
+        var data = rawData.Data.AsSpan();
+        var reader = new SpanBinaryReader(data);
+        reader.Skip(8); // supposedly zeroes
         var majorVer = reader.ReadByte();
         var minorVer = reader.ReadByte();
         var flags = reader.ReadUInt16();
@@ -14,6 +17,7 @@ public record struct VolumeInformation(byte MajorVersion, byte MinorVersion, Vol
     }
 }
 
+[Flags]
 public enum VolumeInformationFlags : ushort
 {
     Dirty = 0x0001,
