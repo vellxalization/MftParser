@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileSystemTraverser", "FileSystemTraverser\FileSystemTraverser.csproj", "{F49FED4E-AFDA-48B5-A300-F8898777192C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtfsParser", "NtfsParser\NtfsParser.csproj", "{F49FED4E-AFDA-48B5-A300-F8898777192C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
