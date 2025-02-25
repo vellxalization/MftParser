@@ -1,6 +1,6 @@
 ﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.VolumeInformation;
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct VolumeInformation(byte MajorVersion, byte MinorVersion, VolumeInformationFlags Flags)
 {

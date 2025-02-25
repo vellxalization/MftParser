@@ -1,6 +1,6 @@
 ﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.BitMap;
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct Bitmap(byte[] Data)
 {

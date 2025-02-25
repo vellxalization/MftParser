@@ -1,6 +1,6 @@
 ﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.StandardInformation;
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct StandardInformation(ulong FileCreated, ulong FileAltered, ulong MftChanged, ulong FileRead, 
     DosPermissions DosPermissions, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 

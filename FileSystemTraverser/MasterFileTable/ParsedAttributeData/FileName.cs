@@ -2,7 +2,7 @@
 using FileSystemTraverser.MasterFileTable.AttributeRecord;
 using FileSystemTraverser.MasterFileTable.Header;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.FileName;
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct FileName(FileReference ReferenceToParentDirectory, ulong FileCreated, ulong FileAltered,
     ulong MftChanged, ulong FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,

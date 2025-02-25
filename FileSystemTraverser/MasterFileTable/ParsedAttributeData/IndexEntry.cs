@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable;
+﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags, 
     byte[] Content, ulong ChildVcn)

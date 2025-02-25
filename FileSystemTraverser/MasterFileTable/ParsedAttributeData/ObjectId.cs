@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using FileSystemTraverser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.ObjectId;
+namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
 
 public record struct ObjectId(Guid Id, Guid BirthVolumeId, Guid BirthObjectId, Guid DomainId)
 {
