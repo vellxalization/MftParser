@@ -56,7 +56,7 @@ public enum AttributeType
     Bitmap = 0xB0,
     ReparsePoint = 0xC0,
     EaInformation = 0xD0,
-    Ea = 0xE0,
+    ExtendedAttribute = 0xE0,
     LoggedUtilityStream = 0x100,
     EndOfAttributeList = 0xFF
 }
