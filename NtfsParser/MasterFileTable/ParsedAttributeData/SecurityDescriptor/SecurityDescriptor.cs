@@ -1,6 +1,6 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 
 public record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessControlList Sacl, AccessControlList Dacl, 
     SecurityId UserSid, SecurityId GroupSid)

@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.BootSector;
+﻿namespace NtfsParser.BootSector;
 
 public record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerCluster, byte MediaDescriptor, 
     ushort SectorsPerTrack, ushort NumberOfHeads, uint HiddenSectors)

@@ -1,7 +1,7 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
-using FileSystemTraverser.MasterFileTable.Header;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
+using NtfsParser.MasterFileTable.Header;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.AttributeList;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData.AttributeList;
 
 public record struct AttributeListEntry(AttributeType AttributeType, ushort RecordSize, byte NameSize, byte NameOffset, 
     ulong Vcn, FileReference FileReference, ushort AttributeId, byte[] Name)

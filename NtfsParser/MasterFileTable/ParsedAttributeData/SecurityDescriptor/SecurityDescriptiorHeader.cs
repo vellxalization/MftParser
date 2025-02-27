@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 
 public record struct SecurityDescriptorHeader(byte Revision, SecurityDescriptorControlFlags ControlFlags, uint OffsetToUserSid, 
     uint OffsetToGroupSid, uint OffsetToSacl, uint OffsetToDacl)

@@ -1,6 +1,6 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.IndexRoot;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData.IndexRoot;
 
 public record struct IndexRoot(IndexRootHeader Header, IndexNodeHeader NodeHeader, IndexEntry[] Entries)
 {

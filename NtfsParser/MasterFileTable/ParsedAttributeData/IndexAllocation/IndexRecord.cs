@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.IndexAllocation;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.IndexAllocation;
 
 public record struct IndexRecord(IndexRecordHeader Header, IndexNodeHeader IndexNodeHeader, byte[] FixUp, 
     IndexEntry[] Entries)

@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.BootSector;
+﻿namespace NtfsParser.BootSector;
 
 public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
     sbyte ClustersPerFileRecordSegment, sbyte ClustersPerIndexBlock, long VolumeSerialNumber)

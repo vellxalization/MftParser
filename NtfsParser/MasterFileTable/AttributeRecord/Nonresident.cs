@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿namespace NtfsParser.MasterFileTable.AttributeRecord;
 
 public record struct Nonresident(ulong LowestVcn, ulong HighestVcn, ushort DataRunsOffset, ushort CompressionUnitSize, 
     ulong AllocatedSize, ulong DataSize, ulong ValidDataSize, ulong TotalAllocated)

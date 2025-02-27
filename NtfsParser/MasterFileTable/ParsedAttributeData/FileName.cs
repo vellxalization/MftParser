@@ -1,8 +1,8 @@
 ﻿using System.Text;
-using FileSystemTraverser.MasterFileTable.AttributeRecord;
-using FileSystemTraverser.MasterFileTable.Header;
+using NtfsParser.MasterFileTable.AttributeRecord;
+using NtfsParser.MasterFileTable.Header;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 
 public record struct FileName(FileReference ReferenceToParentDirectory, ulong FileCreated, ulong FileAltered,
     ulong MftChanged, ulong FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,

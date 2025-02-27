@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 
 public record struct AccessMask
 {

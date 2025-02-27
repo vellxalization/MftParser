@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.Header;
+﻿namespace NtfsParser.MasterFileTable.Header;
 
 public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffset, ushort FixUpLength)
 {

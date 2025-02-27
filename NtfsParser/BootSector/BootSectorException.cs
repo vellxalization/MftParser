@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.BootSector;
+﻿namespace NtfsParser.BootSector;
 
 public class BootSectorException(string message) : Exception(message);
 

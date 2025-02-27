@@ -1,7 +1,7 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
-using FileSystemTraverser.MasterFileTable.Header;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
+using NtfsParser.MasterFileTable.Header;
 
-namespace FileSystemTraverser.MasterFileTable;
+namespace NtfsParser.MasterFileTable;
 
 public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attributes)
 {

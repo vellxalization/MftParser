@@ -1,6 +1,6 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.IndexAllocation;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData.IndexAllocation;
 
 public record struct IndexAllocation(IndexRecord[] Records)
 {

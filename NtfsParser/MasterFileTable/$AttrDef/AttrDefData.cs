@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData._AttrDef;
+﻿namespace NtfsParser.MasterFileTable._AttrDef;
 
 public record struct AttrDefData(AttrDefEntry[] Entries)
 {

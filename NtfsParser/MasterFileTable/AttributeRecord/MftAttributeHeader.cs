@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿namespace NtfsParser.MasterFileTable.AttributeRecord;
 
 public record struct MftAttributeHeader(AttributeType Type, uint Size, bool IsNonresident, byte NameSize, 
     ushort NameOffset, AttributeHeaderFlags DataFlags, ushort AttributeId, Resident Resident, Nonresident Nonresident)

@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable;
+﻿namespace NtfsParser.MasterFileTable;
 
 public class MftException(string message) : Exception(message);
 

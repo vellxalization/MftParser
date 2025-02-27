@@ -1,6 +1,6 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.AttributeList;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData.AttributeList;
 
 public record struct AttributeList(AttributeListEntry[] Entries)
 {

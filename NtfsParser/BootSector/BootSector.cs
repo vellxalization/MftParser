@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.BootSector;
+﻿namespace NtfsParser.BootSector;
 
 public record struct BootSector(
     // byte[] Jmp, 

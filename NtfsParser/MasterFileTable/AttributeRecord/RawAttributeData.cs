@@ -1,3 +1,3 @@
-﻿namespace FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿namespace NtfsParser.MasterFileTable.AttributeRecord;
 
 public record struct RawAttributeData(byte[] Data);

@@ -1,6 +1,6 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.ExtendedAttribute;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData.ExtendedAttribute;
 
 public record struct ExtendedAttribute()
 {

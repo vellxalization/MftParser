@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.IndexAllocation;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.IndexAllocation;
 
 public record struct IndexRecordHeader(ushort FixUpOffset, ushort FixUpLength, ulong LogSequenceNumber,
     ulong Vcn)

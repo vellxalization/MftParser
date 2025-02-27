@@ -1,6 +1,6 @@
-﻿using FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 
 // TODO: out of all of the attributes I couldn't find any MFT record with this attribute and properly test it
 

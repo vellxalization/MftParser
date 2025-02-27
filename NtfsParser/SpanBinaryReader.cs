@@ -1,6 +1,6 @@
 ﻿using System.Buffers.Binary;
 
-namespace FileSystemTraverser;
+namespace NtfsParser;
 
 public ref struct SpanBinaryReader
 {

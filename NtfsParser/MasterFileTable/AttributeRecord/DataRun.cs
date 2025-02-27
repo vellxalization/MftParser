@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.AttributeRecord;
+﻿namespace NtfsParser.MasterFileTable.AttributeRecord;
 
 public record struct DataRun(byte Header, UInt128 Length, UInt128 Offset)
 {

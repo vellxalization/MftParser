@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.ExtendedAttribute;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.ExtendedAttribute;
 
 public record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte CharNameLength, ushort ValueSize, 
     byte[] Name, byte[] Value)

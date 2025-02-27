@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using FileSystemTraverser.MasterFileTable.AttributeRecord;
+using NtfsParser.MasterFileTable.AttributeRecord;
 
-namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
+namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 
 public record struct VolumeName(byte[] Name)
 {

@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 
 public record struct IndexNodeHeader(uint EntryListOffset, uint EntryListEndOffset, uint EntryListBufferEndOffset, 
     bool HasChildren)

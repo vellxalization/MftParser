@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
+﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 
 public record struct AccessControlEntry(AceType Type, AceFlags Flags, ushort Size, AccessMask AccessMask, SecurityId SecurityId)
 {

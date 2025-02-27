@@ -1,4 +1,4 @@
-﻿namespace FileSystemTraverser.MasterFileTable.Header;
+﻿namespace NtfsParser.MasterFileTable.Header;
 
 public record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
 {
