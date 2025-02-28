@@ -13,11 +13,10 @@ public record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
         while (data.Length > 0)
         {
             var entry = ExtendedAttributeEntry.Parse(data);
-            Console.WriteLine(Encoding.ASCII.GetString(entry.Name));
             entries.Add(entry);
             data = data.Slice((int)entry.EntrySize);
         }
-
+        
         return new ExtendedAttribute(entries.ToArray());
     }
 }

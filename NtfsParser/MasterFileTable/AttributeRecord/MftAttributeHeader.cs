@@ -20,7 +20,7 @@ public record struct MftAttributeHeader(AttributeType Type, uint Size, bool IsNo
         if (nonresidentFlag == 0)
         {
             var rawResident = reader.ReadBytes(8);
-            var resident = Resident.CreateFromStream(rawResident);
+            var resident = Resident.Parse(rawResident);
             return new MftAttributeHeader((AttributeType)type, size, false, nameSize, nameOffset,
                 (AttributeHeaderFlags)dataFlags, attributeId, resident, default);
         }

@@ -43,6 +43,7 @@ public record struct StandardInformation(FileTime FileCreated, FileTime FileAlte
     }
 }
 
+[Flags]
 public enum DosPermissions : uint
 {
     ReadOnly = 0x0001,

@@ -2,7 +2,7 @@
 
 public record struct Resident(uint Size, ushort Offset, byte IndexedFlag)
 {
-    public static Resident CreateFromStream(ReadOnlySpan<byte> rawResident)
+    public static Resident Parse(ReadOnlySpan<byte> rawResident)
     {
         var reader = new SpanBinaryReader(rawResident);
         var size = reader.ReadUInt32();

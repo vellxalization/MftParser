@@ -24,7 +24,6 @@ public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequ
         var firstAttributeId = reader.ReadUInt16();
         reader.Position = header.FixUpOffset; // move position to the update sequence array
         var fixUp = reader.ReadBytes(header.FixUpLength);
-        reader.Position = attributesOffset; // move position to the first attribute
         // TODO: there can be 2 additional fields depending on the OS version but I will ignore them for now
         // Maybe I should pass the size like in the StandardInformation
         
