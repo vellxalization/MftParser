@@ -4,8 +4,8 @@ using NtfsParser.MasterFileTable.Header;
 
 namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 
-public record struct FileName(FileReference ReferenceToParentDirectory, ulong FileCreated, ulong FileAltered,
-    ulong MftChanged, ulong FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,
+public record struct FileName(FileReference ReferenceToParentDirectory, FileTime FileCreated, FileTime FileAltered,
+    FileTime MftChanged, FileTime FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,
     byte FilenameLength, byte FilenameNamespace, byte[] UnicodeFilename)
 {
     public static FileName CreateFromRawData(RawAttributeData rawData)
@@ -25,9 +25,10 @@ public record struct FileName(FileReference ReferenceToParentDirectory, ulong Fi
         var filenameNamespace = reader.ReadByte();
         var filename = reader.ReadBytes(filenameLength * 2); // utf-16 encoded name. 2 bytes/char
         
-        return new FileName(referenceToParentDirectory, fileCreated, fileAltered, mftChanged, fileRead,
-            allocatedFileSize, realFileSize, (FileNameFlags)flags, eaReparse, filenameLength, filenameNamespace, 
-            filename.ToArray());
+        return new FileName(referenceToParentDirectory, new FileTime((long)fileCreated), 
+            new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
+            new FileTime((long)fileRead), allocatedFileSize, realFileSize, (FileNameFlags)flags, eaReparse,
+            filenameLength, filenameNamespace, filename.ToArray());
     }
 
     public string GetStringFileName() => Encoding.Unicode.GetString(UnicodeFilename);

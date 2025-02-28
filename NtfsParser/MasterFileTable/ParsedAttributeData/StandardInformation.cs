@@ -2,9 +2,9 @@
 
 namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 
-public record struct StandardInformation(ulong FileCreated, ulong FileAltered, ulong MftChanged, ulong FileRead, 
+public record struct StandardInformation(FileTime FileCreated, FileTime FileAltered, FileTime MftChanged, FileTime FileRead, 
     DosPermissions DosPermissions, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 
-    ulong QuotaChanged, ulong UpdateSequenceNumber)
+    ulong QuotaCharged, ulong UpdateSequenceNumber)
 {
     public static StandardInformation CreateFromRawData(RawAttributeData rawData, int size)
     {
@@ -25,18 +25,21 @@ public record struct StandardInformation(ulong FileCreated, ulong FileAltered, u
         var classId = reader.ReadUInt32();
         if (size == 48)
         {
-            return new StandardInformation(fileCreated, fileAltered, mftChanged, fileRead, 
-                (DosPermissions)dosPermissions, maxVersions, versionNumber, classId, 
-                0, 0, 0, 0);
+            return new StandardInformation(new FileTime((long)fileCreated), 
+                new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
+                new FileTime((long)fileRead), (DosPermissions)dosPermissions, maxVersions, versionNumber,
+                classId, 0, 0, 0, 0);
         }
         
         var ownerId = reader.ReadUInt32();
         var securityId = reader.ReadUInt32();
-        var quotaChanged = reader.ReadUInt64();
+        var quotaCharged = reader.ReadUInt64();
         var updateSequenceNumber = reader.ReadUInt64();
         
-        return new StandardInformation(fileCreated, fileAltered, mftChanged, fileRead, (DosPermissions)dosPermissions, 
-            maxVersions, versionNumber, classId, ownerId, securityId, quotaChanged, updateSequenceNumber);
+        return new StandardInformation(new FileTime((long)fileCreated), 
+            new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
+            new FileTime((long)fileAltered), (DosPermissions)dosPermissions, maxVersions, versionNumber,
+            classId, ownerId, securityId, quotaCharged, updateSequenceNumber);
     }
 }
 
