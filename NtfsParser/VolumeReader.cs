@@ -1,0 +1,40 @@
+﻿using NtfsParser.MasterFileTable;
+
+namespace NtfsParser;
+
+public class VolumeReader
+{
+    public int ClusterByteSize { get; }
+    public int MftRecordSize { get; }
+    private readonly FileStream _stream;
+
+    public VolumeReader(FileStream stream, int clusterByteSize, int mftRecordSize)
+    {
+        _stream = stream;
+        ClusterByteSize = clusterByteSize;
+        MftRecordSize = mftRecordSize;
+    }
+
+    public void SetPosition(long position) => _stream.Seek(position, SeekOrigin.Begin);
+    public void SetLcnPosition(int lcn) => _stream.Seek((long)lcn * ClusterByteSize, SeekOrigin.Begin);
+    public void SetVcnPosition(int vcn) => _stream.Seek((long)vcn * ClusterByteSize, SeekOrigin.Current);
+
+    public long GetPosition() => _stream.Position;
+    
+    public Span<byte> ReadBytes(int length)
+    {
+        var buff = new Span<byte>(new byte[length]);
+        _stream.ReadExactly(buff);
+        return buff;
+    }
+    
+    public void ReadBytes(byte[] buffer, int offset, int length) => _stream.ReadExactly(buffer, offset, length);
+    
+    public MftRecord ReadMftRecord()
+    {
+        var rawRecord = new Span<byte>(new byte[MftRecordSize]);
+        _stream.ReadExactly(rawRecord);
+        var parsedRecord = MftRecord.Parse(rawRecord);
+        return parsedRecord;
+    }
+}

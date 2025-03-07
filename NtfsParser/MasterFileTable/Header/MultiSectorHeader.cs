@@ -10,7 +10,6 @@ public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffse
         {
             [(byte)'F', (byte)'I', (byte)'L', (byte)'E'] => MftSignature.File,
             [(byte)'B', (byte)'A', (byte)'A', (byte)'D'] => MftSignature.Baad,
-            // [0, 0, 0, 0] => MftSignature.Zeroes, // TODO: questionable solution for determining where metafiles end
             _ => throw new Exception("Unknown signature") // TODO: temp solution
         };
         
@@ -23,7 +22,6 @@ public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffse
 
 public enum MftSignature
 {
-    Zeroes,
     File, 
     Baad
 }

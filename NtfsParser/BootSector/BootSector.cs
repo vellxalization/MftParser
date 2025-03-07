@@ -1,8 +1,7 @@
 ﻿namespace NtfsParser.BootSector;
 
 public record struct BootSector(
-    // byte[] Jmp, 
-    ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap, ushort SectorEnd)
+    ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
 {
     public static BootSector Parse(Span<byte> rawBootSector)
     {
@@ -30,7 +29,12 @@ public record struct BootSector(
             throw new InvalidEndMarkerException(sectorEnd);
         }
         
-        // return new BootSector(jmp, oemId, bpb, extBpb, bootstrap, sectorEnd);
-        return new BootSector(oemId, bpb, extBpb, bootstrap.ToArray(), sectorEnd);
+        return new BootSector(oemId, bpb, extBpb, bootstrap.ToArray());
     }
+
+    public int GetClusterByteSize() => Bpb.SectorsPerCluster * Bpb.BytesPerSector;
+
+    public int GetMftRecordByteSize() => ExtBpb.ClustersPerFileRecordSegment > 0
+        ? ExtBpb.ClustersPerFileRecordSegment * GetClusterByteSize()
+        : 1 << -ExtBpb.ClustersPerFileRecordSegment; // 2^abs(value)
 }

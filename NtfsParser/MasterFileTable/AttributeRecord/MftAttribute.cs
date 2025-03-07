@@ -52,31 +52,48 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
         return reader.ReadBytes(dataRunSize);
     }
 
-    public RawAttributeData GetAttributeData(BinaryReader reader, int clusterByteSize)
+    public RawAttributeData GetAttributeData(VolumeReader volumeReader)
     {
         return Header.IsNonresident 
-            ? new RawAttributeData(GetDataFromDataRun(reader, clusterByteSize)) 
+            ? new RawAttributeData(GetDataFromDataRun(volumeReader)) 
             : new RawAttributeData(Value);
     }
 
     public ulong GetActualDataSize() =>
         Header.IsNonresident ? Header.Nonresident.DataSize : Header.Resident.Size;
     
-    private byte[] GetDataFromDataRun(BinaryReader reader, int clusterByteSize)
+    private byte[] GetDataFromDataRun(VolumeReader volumeReader)
     {
-        var start = reader.BaseStream.Position;
-        
+        var start = volumeReader.GetPosition();
+
+        bool firstRun = true;
         var dataRuns = CreateDataRunsFromValue();
-        var bytes = new byte[dataRuns.Sum(run => (int)run.Length) * clusterByteSize];
+        var bytes = new byte[Header.Nonresident.AllocatedSize];
         int offset = 0;
         foreach (var run in dataRuns)
         {
-            reader.BaseStream.Position = (long)run.Offset * clusterByteSize;
-            var length = (int)run.Length * clusterByteSize;
-            reader.BaseStream.ReadExactly(bytes, offset, length);
+            if (run.Offset == 0) // sparse
+            {
+                offset += volumeReader.ClusterByteSize * (int)run.Length;
+                continue;
+            }
+
+            if (firstRun)
+            {
+                volumeReader.SetLcnPosition((int)run.Offset);
+                firstRun = false;
+            }
+            else
+            {
+                volumeReader.SetVcnPosition((int)run.Offset);
+            }
+            
+            var length = (int)run.Length * volumeReader.ClusterByteSize;
+            volumeReader.ReadBytes(bytes, offset, length);
             offset += length;
         }
-        reader.BaseStream.Position = start;
+        
+        volumeReader.SetPosition(start);
         return bytes;
     }
 
@@ -96,10 +113,16 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
             }
             
             i += lengthBit;
-            UInt128 offset = 0;
+            if (offsetBit == 0)
+            {
+                runs.Add(new DataRun(header, length, 0));
+                continue;
+            }
+            
+            Int128 offset = 0;
             for (int j = 0; j < offsetBit; ++j)
             {
-                offset |= (UInt128)(Value[j + i] << (8 * j));
+                offset |= Value[j + i] << (8 * j);
             }
             
             i += offsetBit;
