@@ -3,7 +3,7 @@
 public record struct SecurityDescriptorHeader(byte Revision, SecurityDescriptorControlFlags ControlFlags, uint OffsetToUserSid, 
     uint OffsetToGroupSid, uint OffsetToSacl, uint OffsetToDacl)
 {
-    public static SecurityDescriptorHeader Parse(ReadOnlySpan<byte> rawData)
+    public static SecurityDescriptorHeader Parse(Span<byte> rawData)
     {
         var reader = new SpanBinaryReader(rawData);
         var revision = reader.ReadByte();

@@ -5,7 +5,7 @@ namespace NtfsParser.MasterFileTable.ParsedAttributeData.IndexRoot;
 public record struct IndexRootHeader(AttributeType AttributeType, CollationRule CollationRule, uint IndexRecordByteSize, 
     byte IndexRecordClusterSize)
 {
-    public static IndexRootHeader Parse(ReadOnlySpan<byte> rawHeader)
+    public static IndexRootHeader Parse(Span<byte> rawHeader)
     {
         var reader = new SpanBinaryReader(rawHeader);
         var attributeType = reader.ReadUInt32();

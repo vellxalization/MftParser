@@ -3,7 +3,7 @@
 public record struct IndexRecordHeader(ushort FixUpOffset, ushort FixUpLength, ulong LogSequenceNumber,
     ulong Vcn)
 {
-    public static IndexRecordHeader Parse(ReadOnlySpan<byte> rawHeader)
+    public static IndexRecordHeader Parse(Span<byte> rawHeader)
     {
         var reader = new SpanBinaryReader(rawHeader);
         var signature = reader.ReadBytes(4);

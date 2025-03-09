@@ -6,10 +6,9 @@ public ref struct SpanBinaryReader
 {
     public int Position { get; set; } = 0;
     public int Length => InternalSpan.Length;
-    public ReadOnlySpan<byte> InternalSpan { get; }
+    public Span<byte> InternalSpan { get; }
 
     public SpanBinaryReader(Span<byte> span) => InternalSpan = span;
-    public SpanBinaryReader(ReadOnlySpan<byte> span) => InternalSpan = span;
     
     public void Skip(int bytes) => Position += bytes;
     
@@ -17,7 +16,7 @@ public ref struct SpanBinaryReader
     
     public sbyte ReadSByte() => unchecked((sbyte)InternalSpan[Position++]);
 
-    public ReadOnlySpan<byte> ReadBytes(int length)
+    public Span<byte> ReadBytes(int length)
     {
         var slice = InternalSpan.Slice(Position, length);
         Position += length;

@@ -2,7 +2,7 @@
 
 public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffset, ushort FixUpLength)
 {
-    public static MultiSectorHeader Parse(ReadOnlySpan<byte> rawHeader)
+    public static MultiSectorHeader Parse(Span<byte> rawHeader)
     {
         var reader = new SpanBinaryReader(rawHeader);
         var signature = reader.ReadBytes(4);

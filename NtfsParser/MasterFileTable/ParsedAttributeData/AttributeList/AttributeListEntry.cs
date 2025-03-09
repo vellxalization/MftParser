@@ -6,7 +6,7 @@ namespace NtfsParser.MasterFileTable.ParsedAttributeData.AttributeList;
 public record struct AttributeListEntry(AttributeType AttributeType, ushort RecordSize, byte NameSize, byte NameOffset, 
     ulong Vcn, FileReference FileReference, ushort AttributeId, byte[] Name)
 {
-    public static AttributeListEntry Parse(ReadOnlySpan<byte> rawData)
+    public static AttributeListEntry Parse(Span<byte> rawData)
     {
         var reader = new SpanBinaryReader(rawData);
         var attributeType = reader.ReadUInt32();

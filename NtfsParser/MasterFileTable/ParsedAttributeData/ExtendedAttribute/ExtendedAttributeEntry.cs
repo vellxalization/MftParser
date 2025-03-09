@@ -3,7 +3,7 @@
 public record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte CharNameLength, short ValueSize, 
     byte[] Name, byte[] Value)
 {
-    public static ExtendedAttributeEntry Parse(ReadOnlySpan<byte> rawEntry)
+    public static ExtendedAttributeEntry Parse(Span<byte> rawEntry)
     {
         var reader = new SpanBinaryReader(rawEntry);
         var entrySize = reader.ReadUInt32();

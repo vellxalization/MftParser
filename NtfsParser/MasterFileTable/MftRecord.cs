@@ -9,7 +9,7 @@ public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attr
     {
         var reader = new SpanBinaryReader(rawMftRecord);
         var header = MftRecordHeader.CreateFromStream(ref reader);
-        ReverseFixUp(ref rawMftRecord, sectorSize, header.FixUpPlaceHolder, header.FixUpValues);
+        header.FixUp.ReverseFixUp(rawMftRecord, sectorSize);
         reader.Position = header.AttributesOffset;
         var attributes = new List<MftAttribute>(1);
         var attributesSpan = reader.ReadBytes((int)header.UsedEntrySize - reader.Position);
@@ -30,19 +30,6 @@ public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attr
 
     private static void ReverseFixUp(ref Span<byte> rawMftRecord, int sectorSize, byte[] fixUpPlaceholder, byte[] fixUpValues)
     {
-        var fixUpLength = fixUpValues.Length / 2;
-        for (int i = 0; i < fixUpLength; ++i)
-        {
-            var lastBytesOffset = (i + 1) * sectorSize - 2;
-            if (rawMftRecord[lastBytesOffset] != fixUpPlaceholder[0] 
-                || rawMftRecord[lastBytesOffset + 1] != fixUpPlaceholder[1])
-            {
-                throw new Exception("Fixup mismatch. Possibly a corrupted sector!"); // TODO: temp solution
-            }
-
-            var valuesOffset = i * 2;
-            rawMftRecord[lastBytesOffset] = fixUpValues[valuesOffset];
-            rawMftRecord[lastBytesOffset + 1] = fixUpValues[valuesOffset + 1];
-        }
+        
     }
 }

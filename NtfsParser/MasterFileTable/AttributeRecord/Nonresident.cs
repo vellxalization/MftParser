@@ -3,7 +3,7 @@
 public record struct Nonresident(ulong LowestVcn, ulong HighestVcn, ushort DataRunsOffset, ushort CompressionUnitSize, 
     ulong AllocatedSize, ulong DataSize, ulong ValidDataSize, ulong TotalAllocated)
 {
-    public static Nonresident Parse(ReadOnlySpan<byte> rawNonresident)
+    public static Nonresident Parse(Span<byte> rawNonresident)
     {
         var reader = new SpanBinaryReader(rawNonresident);
         var lowestVcn = reader.ReadUInt64();

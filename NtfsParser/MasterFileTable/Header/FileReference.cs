@@ -2,7 +2,7 @@
 
 public record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
 {
-    public static FileReference Parse(ReadOnlySpan<byte> rawReference)
+    public static FileReference Parse(Span<byte> rawReference)
     {
         var reader = new SpanBinaryReader(rawReference);
         var segmentNumberLowPart = reader.ReadUInt32();

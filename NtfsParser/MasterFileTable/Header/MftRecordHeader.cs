@@ -1,7 +1,7 @@
 ﻿namespace NtfsParser.MasterFileTable.Header;
 public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequenceNumber, ushort SequenceNumber,
     ushort ReferenceCount, ushort AttributesOffset, MftRecordHeaderFlags EntryFlags, uint UsedEntrySize, uint AllocatedEntrySize,
-    FileReference BaseRecordReference, ushort FirstAttributeId, byte[] FixUpPlaceHolder, byte[] FixUpValues)
+    FileReference BaseRecordReference, ushort FirstAttributeId, FixUp FixUp)
 {
     // TODO: ^ "Type with suspicious equality is used as a member of a record type?" :raised_eyebrow: ^
     public static MftRecordHeader CreateFromStream(ref SpanBinaryReader reader)
@@ -19,14 +19,14 @@ public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequ
         var baseRecordReference = FileReference.Parse(rawReference);
         var firstAttributeId = reader.ReadUInt16();
         reader.Position = header.FixUpOffset; // move position to the update sequence array
-        var fixUpPlaceholder = reader.ReadBytes(2);
-        var fixUpValue = reader.ReadBytes((header.FixUpLength - 1) * 2);
+        var rawFixUp = reader.ReadBytes(header.FixUpLength * 2);
+        var fixUp = FixUp.Parse(rawFixUp);
         // TODO: there can be 2 additional fields depending on the OS version but I will ignore them for now
         // Maybe I should pass the size like in the StandardInformation
         
         return new MftRecordHeader(header, logfileSequenceNumber, sequenceNumber, referenceCount, attributesOffset, 
-            (MftRecordHeaderFlags)entryFlags, usedEntrySize, allocatedEntrySize, baseRecordReference, firstAttributeId, 
-            fixUpPlaceholder.ToArray(), fixUpValue.ToArray());
+            (MftRecordHeaderFlags)entryFlags, usedEntrySize, allocatedEntrySize, baseRecordReference, firstAttributeId,
+            fixUp);
     }
 }
 

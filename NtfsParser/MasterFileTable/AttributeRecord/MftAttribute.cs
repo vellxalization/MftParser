@@ -2,7 +2,7 @@
 
 public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[] Value)
 {
-    public static MftAttribute Parse(ReadOnlySpan<byte> rawAttribute)
+    public static MftAttribute Parse(Span<byte> rawAttribute)
     {
         var reader = new SpanBinaryReader(rawAttribute);
         var header = MftAttributeHeader.Parse(ref reader);
@@ -10,14 +10,14 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
         {
             return new MftAttribute(header, [], []);
         }
-        ReadOnlySpan<byte> name = ReadOnlySpan<byte>.Empty;
+        Span<byte> name = Span<byte>.Empty;
         if (header.NameSize != 0)
         {
             reader.Position = header.NameOffset; // set position to the name field
             name = reader.ReadBytes(header.NameSize * 2); // utf-16 encoded name requires 2 bytes per char
         }
         
-        ReadOnlySpan<byte> data;
+        Span<byte> data;
         if (header.IsNonresident)
         {
             reader.Position = header.Nonresident.DataRunsOffset;
@@ -33,7 +33,7 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
         return new MftAttribute(header, name.ToArray(), data.ToArray());
     }
 
-    private static ReadOnlySpan<byte> ReadDataRun(SpanBinaryReader reader)
+    private static Span<byte> ReadDataRun(SpanBinaryReader reader)
     {
         var beforeDataRun = reader.Position;
         var header = reader.ReadByte();

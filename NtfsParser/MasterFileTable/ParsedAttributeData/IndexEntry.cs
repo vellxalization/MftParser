@@ -3,7 +3,7 @@
 public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags, 
     byte[] Content, ulong ChildVcn)
 {
-    public static IndexEntry Parse(ReadOnlySpan<byte> rawEntry)
+    public static IndexEntry Parse(Span<byte> rawEntry)
     {
         var reader = new SpanBinaryReader(rawEntry);
         var bytes = reader.ReadBytes(8);

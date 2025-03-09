@@ -3,7 +3,7 @@
 public record struct IndexNodeHeader(uint EntryListOffset, uint EntryListEndOffset, uint EntryListBufferEndOffset, 
     bool HasChildren)
 {
-    public static IndexNodeHeader Parse(ReadOnlySpan<byte> rawHeader)
+    public static IndexNodeHeader Parse(Span<byte> rawHeader)
     {
         var reader = new SpanBinaryReader(rawHeader);
         var entryListOffset = reader.ReadUInt32();

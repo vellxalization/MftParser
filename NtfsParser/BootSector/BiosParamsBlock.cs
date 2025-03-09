@@ -3,7 +3,7 @@
 public record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerCluster, byte MediaDescriptor, 
     ushort SectorsPerTrack, ushort NumberOfHeads, uint HiddenSectors)
 {
-    public static BiosParamsBlock Parse(ReadOnlySpan<byte> rawBpb)
+    public static BiosParamsBlock Parse(Span<byte> rawBpb)
     {
         var reader = new SpanBinaryReader(rawBpb);
         var bytesPerSector = reader.ReadUInt16();

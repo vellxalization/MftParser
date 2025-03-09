@@ -2,7 +2,7 @@
 
 public record struct AccessControlList(byte Revision, ushort AclSize, ushort AceCount, AccessControlEntry[] Entries)
 {
-    public static AccessControlList Parse(ReadOnlySpan<byte> rawAcl)
+    public static AccessControlList Parse(Span<byte> rawAcl)
     {
         var reader = new SpanBinaryReader(rawAcl);
         var revision = reader.ReadByte();

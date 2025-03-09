@@ -3,7 +3,7 @@
 public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
     sbyte ClustersPerFileRecordSegment, sbyte ClustersPerIndexBlock, long VolumeSerialNumber)
 {
-    public static ExtendedBpb Parse(ReadOnlySpan<byte> rawExBpb)
+    public static ExtendedBpb Parse(Span<byte> rawExBpb)
     {
         var reader = new SpanBinaryReader(rawExBpb);
         reader.Skip(4);
