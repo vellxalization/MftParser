@@ -21,7 +21,7 @@ public record struct IndexRoot(IndexRootHeader Header, IndexNodeHeader NodeHeade
         while (!entry.Flags.HasFlag(IndexEntryFlags.LastInList))
         {
             entries.Add(entry);
-            rawEntries = rawHeader.Slice(entry.EntryLength);
+            rawEntries = rawEntries.Slice(entry.EntryLength);
             entry = IndexEntry.Parse(rawEntries);
         }
         
