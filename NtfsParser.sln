@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtfsParser", "NtfsParser\NtfsParser.csproj", "{F49FED4E-AFDA-48B5-A300-F8898777192C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{8F0CF560-A1EC-41EE-A6C0-9C1C7DBCD2FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{F49FED4E-AFDA-48B5-A300-F8898777192C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F49FED4E-AFDA-48B5-A300-F8898777192C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F49FED4E-AFDA-48B5-A300-F8898777192C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F0CF560-A1EC-41EE-A6C0-9C1C7DBCD2FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F0CF560-A1EC-41EE-A6C0-9C1C7DBCD2FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F0CF560-A1EC-41EE-A6C0-9C1C7DBCD2FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F0CF560-A1EC-41EE-A6C0-9C1C7DBCD2FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
