@@ -4,13 +4,15 @@ namespace NtfsParser;
 
 public class VolumeReader
 {
+    public int SectorByteSize { get; }
     public int ClusterByteSize { get; }
     public int MftRecordSize { get; }
     private readonly FileStream _stream;
 
-    public VolumeReader(FileStream stream, int clusterByteSize, int mftRecordSize)
+    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize)
     {
         _stream = stream;
+        SectorByteSize = sectorByteSize;
         ClusterByteSize = clusterByteSize;
         MftRecordSize = mftRecordSize;
     }
@@ -39,7 +41,7 @@ public class VolumeReader
             return new MftRecord();
         }
         
-        var parsedRecord = MftRecord.Parse(rawRecord, 512);
+        var parsedRecord = MftRecord.Parse(rawRecord, SectorByteSize);
         return parsedRecord;
     }
 }

@@ -32,7 +32,7 @@ public class RawVolume : IDisposable
         }
         
         BootSector = bootSector;
-        var reader = new VolumeReader(_stream, bootSector.Value.GetClusterByteSize(), bootSector.Value.GetMftRecordByteSize());
+        var reader = new VolumeReader(_stream, bootSector.Value.Bpb.BytesPerSector, bootSector.Value.GetClusterByteSize(), bootSector.Value.GetMftRecordByteSize());
         return reader;
     }
 
