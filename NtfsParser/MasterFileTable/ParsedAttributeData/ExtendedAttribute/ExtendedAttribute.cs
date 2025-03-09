@@ -1,5 +1,4 @@
-﻿using System.Text;
-using NtfsParser.MasterFileTable.AttributeRecord;
+﻿using NtfsParser.MasterFileTable.AttributeRecord;
 
 namespace NtfsParser.MasterFileTable.ParsedAttributeData.ExtendedAttribute;
 

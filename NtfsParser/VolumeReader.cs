@@ -34,7 +34,12 @@ public class VolumeReader
     {
         var rawRecord = new Span<byte>(new byte[MftRecordSize]);
         _stream.ReadExactly(rawRecord);
-        var parsedRecord = MftRecord.Parse(rawRecord);
+        if (rawRecord[..4] is [0, 0, 0, 0])
+        {
+            return new MftRecord();
+        }
+        
+        var parsedRecord = MftRecord.Parse(rawRecord, 512);
         return parsedRecord;
     }
 }

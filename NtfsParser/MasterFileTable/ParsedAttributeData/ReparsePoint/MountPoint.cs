@@ -15,12 +15,9 @@ public record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNa
         var printNameSize = reader.ReadUInt16();
         var dataStart = reader.Position;
         reader.Position = dataStart + substituteNameOffset;
-        var diff = printNameOffset + dataStart - reader.Position - 2; // subtract 2 because of the string terminator
-        // using it in case something went wrong when reading size
-        var substituteName = reader.ReadBytes(substituteNameSize == diff ? substituteNameSize : diff);
+        var substituteName = reader.ReadBytes(substituteNameSize);
         reader.Position = dataStart + printNameOffset;
-        diff = data.Length - reader.Position - 2;
-        var printName = reader.ReadBytes(printNameSize == diff ? printNameSize : diff);
+        var printName = reader.ReadBytes(printNameSize);
         
         return new MountPoint(substituteNameOffset, substituteNameSize, printNameOffset, printNameSize, 
             substituteName.ToArray(), printName.ToArray());

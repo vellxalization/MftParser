@@ -8,6 +8,7 @@ public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffse
         var signature = reader.ReadBytes(4);
         var enumSignature = signature switch
         {
+            [0, 0, 0, 0] => MftSignature.Empty,
             [(byte)'F', (byte)'I', (byte)'L', (byte)'E'] => MftSignature.File,
             [(byte)'B', (byte)'A', (byte)'A', (byte)'D'] => MftSignature.Baad,
             _ => throw new Exception("Unknown signature") // TODO: temp solution
@@ -22,6 +23,7 @@ public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffse
 
 public enum MftSignature
 {
+    Empty,
     File, 
     Baad
 }

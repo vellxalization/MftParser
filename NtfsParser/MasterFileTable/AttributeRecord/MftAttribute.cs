@@ -10,8 +10,7 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
         {
             return new MftAttribute(header, [], []);
         }
-
-        ReadOnlySpan<byte> name = [];
+        ReadOnlySpan<byte> name = ReadOnlySpan<byte>.Empty;
         if (header.NameSize != 0)
         {
             reader.Position = header.NameOffset; // set position to the name field
