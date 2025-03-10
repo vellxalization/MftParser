@@ -6,13 +6,8 @@ public record struct StandardInformation(FileTime FileCreated, FileTime FileAlte
     DosPermissions DosPermissions, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 
     ulong QuotaCharged, ulong UpdateSequenceNumber)
 {
-    public static StandardInformation CreateFromRawData(RawAttributeData rawData, int size)
+    public static StandardInformation CreateFromRawData(RawAttributeData rawData)
     {
-        if (size is not (48 or 72))
-        {
-            throw new ArgumentException("Expected a size of 48 or 72 bytes");
-        }
-
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);
         var fileCreated = reader.ReadUInt64();
@@ -23,7 +18,7 @@ public record struct StandardInformation(FileTime FileCreated, FileTime FileAlte
         var maxVersions = reader.ReadUInt32();
         var versionNumber = reader.ReadUInt32();
         var classId = reader.ReadUInt32();
-        if (size == 48)
+        if (rawData.Data.Length <= 48)
         {
             return new StandardInformation(new FileTime((long)fileCreated), 
                 new FileTime((long)fileAltered), new FileTime((long)mftChanged), 

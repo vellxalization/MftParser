@@ -4,10 +4,9 @@ namespace NtfsParser.MasterFileTable.ParsedAttributeData.ExtendedAttribute;
 
 public record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
 {
-    public static ExtendedAttribute CreateFromRawData(RawAttributeData rawData, int dataSize)
+    public static ExtendedAttribute CreateFromRawData(RawAttributeData rawData)
     {
-        var data = rawData.Data.AsSpan().Slice(0, dataSize); 
-        // anything after datasize might contain some irrelevant data if the attribute is nonresident so we trim it
+        var data = rawData.Data.AsSpan(); 
         var entries = new List<ExtendedAttributeEntry>();
         while (data.Length > 0)
         {

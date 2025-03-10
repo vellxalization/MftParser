@@ -5,7 +5,7 @@ namespace NtfsParser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 public record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessControlList Sacl, AccessControlList Dacl, 
     SecurityId UserSid, SecurityId GroupSid)
 {
-    public static SecurityDescriptor CreateFromRawData(RawAttributeData rawData, int validDataSize)
+    public static SecurityDescriptor CreateFromRawData(RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);
@@ -42,7 +42,7 @@ public record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessC
         reader.Position = (int)header.OffsetToUserSid;
         var userSid = reader.ReadBytes((int)header.OffsetToGroupSid - reader.Position);
         reader.Position = (int)header.OffsetToGroupSid;
-        var groupSid = reader.ReadBytes(validDataSize - reader.Position);
+        var groupSid = reader.ReadBytes(data.Length - reader.Position);
         return new SecurityDescriptor(header, sacl, dacl, new SecurityId(userSid.ToArray()), 
             new SecurityId(groupSid.ToArray()));
     }
