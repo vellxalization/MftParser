@@ -27,9 +27,4 @@ public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attr
         // rest is unused bytes
         return new MftRecord(header, attributes.ToArray());
     }
-
-    private static void ReverseFixUp(ref Span<byte> rawMftRecord, int sectorSize, byte[] fixUpPlaceholder, byte[] fixUpValues)
-    {
-        
-    }
 }

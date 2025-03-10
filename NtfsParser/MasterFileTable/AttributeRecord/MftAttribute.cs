@@ -67,33 +67,43 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
 
         bool firstRun = true;
         var dataRuns = CreateDataRunsFromValue();
-        var bytes = new byte[Header.Nonresident.AllocatedSize];
+        var data = new byte[Header.Nonresident.ValidDataSize];
         int offset = 0;
-        foreach (var run in dataRuns)
+        for (int i = 0; i < dataRuns.Length - 1; ++i)
         {
-            if (run.Offset == 0) // sparse
+            var dataRun = dataRuns[i];
+            ReadDataFromRun(dataRun, false);
+        }
+
+        var lastDataRun = dataRuns[^1];
+        ReadDataFromRun(lastDataRun, true);
+        volumeReader.SetPosition(start);
+        return data;
+
+        void ReadDataFromRun(DataRun dataRun, bool isLastRun)
+        {
+            if (dataRun.Offset == 0) // sparse
             {
-                offset += volumeReader.ClusterByteSize * (int)run.Length;
-                continue;
+                offset += (int)dataRun.Length * volumeReader.ClusterByteSize;
+                return;
             }
 
             if (firstRun)
             {
-                volumeReader.SetLcnPosition((int)run.Offset);
+                volumeReader.SetLcnPosition((int)dataRun.Offset);
                 firstRun = false;
             }
             else
             {
-                volumeReader.SetVcnPosition((int)run.Offset);
+                volumeReader.SetVcnPosition((int)dataRun.Offset);
             }
-            
-            var length = (int)run.Length * volumeReader.ClusterByteSize;
-            volumeReader.ReadBytes(bytes, offset, length);
-            offset += length;
+
+            var buffer = new byte[(int)dataRun.Length * volumeReader.ClusterByteSize];
+            volumeReader.ReadBytes(buffer, 0, buffer.Length);
+            var copyLength = isLastRun ? data.Length - offset : buffer.Length;
+            Array.Copy(buffer, 0, data, offset, copyLength);
+            offset += copyLength;
         }
-        
-        volumeReader.SetPosition(start);
-        return bytes;
     }
 
     private DataRun[] CreateDataRunsFromValue()
