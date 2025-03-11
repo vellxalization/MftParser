@@ -1,7 +1,6 @@
-﻿using NtfsParser.MasterFileTable.AttributeRecord;
-using NtfsParser.MasterFileTable.Header;
+﻿using NtfsParser.MasterFileTable.Attribute;
 
-namespace NtfsParser.MasterFileTable;
+namespace NtfsParser.MasterFileTable.MftRecord;
 
 public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attributes)
 {

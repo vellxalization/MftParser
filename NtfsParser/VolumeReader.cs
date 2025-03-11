@@ -1,4 +1,5 @@
 ﻿using NtfsParser.MasterFileTable;
+using NtfsParser.MasterFileTable.MftRecord;
 
 namespace NtfsParser;
 

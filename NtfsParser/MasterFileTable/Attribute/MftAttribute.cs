@@ -1,4 +1,4 @@
-﻿namespace NtfsParser.MasterFileTable.AttributeRecord;
+﻿namespace NtfsParser.MasterFileTable.Attribute;
 
 public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[] Value)
 {

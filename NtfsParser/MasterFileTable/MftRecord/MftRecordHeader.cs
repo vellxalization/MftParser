@@ -1,4 +1,4 @@
-﻿namespace NtfsParser.MasterFileTable.Header;
+﻿namespace NtfsParser.MasterFileTable.MftRecord;
 public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequenceNumber, ushort SequenceNumber,
     ushort ReferenceCount, ushort AttributesOffset, MftRecordHeaderFlags EntryFlags, uint UsedEntrySize, uint AllocatedEntrySize,
     FileReference BaseRecordReference, ushort FirstAttributeId, FixUp FixUp)

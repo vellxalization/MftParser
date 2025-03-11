@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using NtfsParser.MasterFileTable.AttributeRecord;
+using NtfsParser.MasterFileTable.Attribute;
 
 namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 

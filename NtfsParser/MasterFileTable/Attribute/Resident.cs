@@ -1,4 +1,4 @@
-﻿namespace NtfsParser.MasterFileTable.AttributeRecord;
+﻿namespace NtfsParser.MasterFileTable.Attribute;
 
 public record struct Resident(uint Size, ushort Offset, byte IndexedFlag)
 {

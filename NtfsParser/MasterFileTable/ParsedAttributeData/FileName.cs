@@ -1,6 +1,5 @@
 ﻿using System.Text;
-using NtfsParser.MasterFileTable.AttributeRecord;
-using NtfsParser.MasterFileTable.Header;
+using NtfsParser.MasterFileTable.Attribute;
 
 namespace NtfsParser.MasterFileTable.ParsedAttributeData;
 

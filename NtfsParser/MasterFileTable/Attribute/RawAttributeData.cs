@@ -6,7 +6,7 @@ using NtfsParser.MasterFileTable.ParsedAttributeData.IndexRoot;
 using NtfsParser.MasterFileTable.ParsedAttributeData.ReparsePoint;
 using NtfsParser.MasterFileTable.ParsedAttributeData.SecurityDescriptor;
 
-namespace NtfsParser.MasterFileTable.AttributeRecord;
+namespace NtfsParser.MasterFileTable.Attribute;
 
 public record struct RawAttributeData(byte[] Data)
 {
@@ -17,7 +17,7 @@ public record struct RawAttributeData(byte[] Data)
     public SecurityDescriptor ToSecurityId() => SecurityDescriptor.CreateFromRawData(this);
     public VolumeName ToVolumeName() => VolumeName.CreateFromRawData(this);
     public VolumeInformation ToVolumeInformation() => VolumeInformation.CreateFromRawData(this);
-    // TODO: DATA
+    public Data ToData() => ParsedAttributeData.Data.CreateFromRawData(this);
     public IndexRoot ToIndexRoot() => IndexRoot.CreateFromRawData(this);
     public IndexAllocation ToIndexAllocation(uint indexRecordSize, int sectorByteSize) 
         => IndexAllocation.CreateFromRawData(this, indexRecordSize, sectorByteSize);
@@ -26,5 +26,5 @@ public record struct RawAttributeData(byte[] Data)
     public ReparsePoint ToReparsePoint() => ReparsePoint.CreateFromRawData(this);
     public EaInformation ToEaInformation() => EaInformation.CreateFromRawData(this);
     public ExtendedAttribute ToExtendedAttribute() => ExtendedAttribute.CreateFromRawData(this);
-    // TODO: LOGGED UTILITY STREAM
+    public LoggedUtilityStream ToLoggedUtilityStream() => LoggedUtilityStream.CreateFromRawData(this);
 }
