@@ -14,7 +14,7 @@ public record struct RawAttributeData(byte[] Data)
     public AttributeList ToAttributeList() => AttributeList.CreateFromRawData(this);
     public FileName ToFileName() => FileName.CreateFromRawData(this);
     public ObjectId ToObjectId() => ObjectId.CreateFromRawData(this);
-    public SecurityDescriptor ToSecurityId() => SecurityDescriptor.CreateFromRawData(this);
+    public SecurityDescriptor ToSecurityDescriptor() => SecurityDescriptor.CreateFromRawData(this);
     public VolumeName ToVolumeName() => VolumeName.CreateFromRawData(this);
     public VolumeInformation ToVolumeInformation() => VolumeInformation.CreateFromRawData(this);
     public Data ToData() => ParsedAttributeData.Data.CreateFromRawData(this);
