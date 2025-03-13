@@ -1,7 +1,6 @@
 ﻿namespace NtfsParser.MasterFileTable.ParsedAttributeData.IndexAllocation;
 
-public record struct IndexRecordHeader(ushort FixUpOffset, ushort FixUpLength, ulong LogSequenceNumber,
-    ulong Vcn)
+public record struct IndexRecordHeader(ushort FixUpOffset, ushort FixUpLength, ulong LogSequenceNumber, ulong Vcn)
 {
     public static IndexRecordHeader Parse(Span<byte> rawHeader)
     {

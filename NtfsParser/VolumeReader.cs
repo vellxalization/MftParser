@@ -8,17 +8,21 @@ public class VolumeReader
     public int SectorByteSize { get; }
     public int ClusterByteSize { get; }
     public int MftRecordSize { get; }
+    public long MftOffset { get; }
+    
     private readonly FileStream _stream;
 
-    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize)
+    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize, long mftOffset)
     {
         _stream = stream;
         SectorByteSize = sectorByteSize;
         ClusterByteSize = clusterByteSize;
         MftRecordSize = mftRecordSize;
+        MftOffset = mftOffset;
     }
-
+    
     public void SetPosition(long position) => _stream.Seek(position, SeekOrigin.Begin);
+    public void SetPositionToMftStart() => _stream.Seek(MftOffset * ClusterByteSize, SeekOrigin.Begin);
     public void SetLcnPosition(int lcn) => _stream.Seek((long)lcn * ClusterByteSize, SeekOrigin.Begin);
     public void SetVcnPosition(int vcn) => _stream.Seek((long)vcn * ClusterByteSize, SeekOrigin.Current);
 

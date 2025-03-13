@@ -63,8 +63,12 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
     
     private byte[] GetDataFromDataRun(VolumeReader volumeReader)
     {
+        if (Header.Nonresident.ValidDataSize == 0)
+        {
+            return [];
+        }
+        
         var start = volumeReader.GetPosition();
-
         bool firstRun = true;
         var dataRuns = CreateDataRunsFromValue();
         var data = new byte[Header.Nonresident.ValidDataSize];
@@ -95,7 +99,8 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
             }
             else
             {
-                volumeReader.SetVcnPosition((int)dataRun.Offset);
+                volumeReader.SetVcnPosition((int)dataRun.Offset - 1); // offset is relative to the start of the first data run
+                                                                      // so we subtract 1 'cuz we already read it
             }
 
             var buffer = new byte[(int)dataRun.Length * volumeReader.ClusterByteSize];
