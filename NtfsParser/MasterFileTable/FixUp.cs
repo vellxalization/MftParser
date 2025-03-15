@@ -13,7 +13,7 @@ public record struct FixUp(byte[] Placeholder, byte[] Values)
 
     public void ReverseFixUp(Span<byte> entry, int sectorSize)
     {
-        var fixUpLength = Placeholder.Length / 2;
+        var fixUpLength = Values.Length / 2;
         for (int i = 0; i < fixUpLength; ++i)
         {
             var lastBytesOffset = (i + 1) * sectorSize - 2;
