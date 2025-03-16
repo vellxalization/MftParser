@@ -1,4 +1,7 @@
 ﻿using Microsoft.Win32.SafeHandles;
+using NtfsParser.MasterFileTable.Attribute;
+using NtfsParser.MasterFileTable.MftRecord;
+using NtfsParser.MasterFileTable.ParsedAttributeData;
 
 namespace NtfsParser;
 
@@ -30,13 +33,27 @@ public class RawVolume : IDisposable
         {
             return null;
         }
-        
+
         BootSector = bootSector;
+        var mftDataRuns = GetMftDataRuns(bootSector.Value.ExtBpb.LogicalClusterForMft * bootSector.Value.GetClusterByteSize(),
+            bootSector.Value.GetMftRecordByteSize(), bootSector.Value.Bpb.BytesPerSector);
         var reader = new VolumeReader(_stream, bootSector.Value.Bpb.BytesPerSector, 
-            bootSector.Value.GetClusterByteSize(), bootSector.Value.GetMftRecordByteSize(), bootSector.Value.ExtBpb.LogicalClusterForMft);
+            bootSector.Value.GetClusterByteSize(), bootSector.Value.GetMftRecordByteSize(), mftDataRuns);
         return reader;
     }
 
+    private DataRun[] GetMftDataRuns(long mftByteOffset, int mftRecordByteSize, int sectorByteSize)
+    {
+        _stream!.Seek(mftByteOffset, SeekOrigin.Begin);
+        var buffer = new Span<byte>(new byte[mftRecordByteSize]);
+        _stream.ReadExactly(buffer);
+        var parsed = MftRecord.Parse(buffer, sectorByteSize);
+        var dataAttribute = parsed.Attributes.First(attr => attr.Header.Type == AttributeType.Data);
+        var rawDataRuns = dataAttribute.Value;
+        
+        return DataRun.ParseDataRuns(rawDataRuns);
+    }
+    
     private BootSector.BootSector? ReadBootSector()
     {
         if (_stream is null)

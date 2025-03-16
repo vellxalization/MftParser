@@ -1,4 +1,5 @@
 ﻿using NtfsParser.MasterFileTable;
+using NtfsParser.MasterFileTable.Attribute;
 using NtfsParser.MasterFileTable.MftRecord;
 
 namespace NtfsParser;
@@ -9,23 +10,66 @@ public class VolumeReader
     public int ClusterByteSize { get; }
     public int MftRecordSize { get; }
     public long MftOffset { get; }
+    private DataRun[] _mftDataRuns;
     
     private readonly FileStream _stream;
 
-    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize, long mftOffset)
+    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize, DataRun[] MftDataRuns)
     {
         _stream = stream;
         SectorByteSize = sectorByteSize;
         ClusterByteSize = clusterByteSize;
         MftRecordSize = mftRecordSize;
-        MftOffset = mftOffset;
+        _mftDataRuns = MftDataRuns;
+    }
+
+    public void SetPosition(long position, SetStrategy strategy)
+    {
+        switch (strategy)
+        {
+            case SetStrategy.Byte:
+            {
+                _stream.Seek(position, SeekOrigin.Begin);
+                return;
+            }
+            case SetStrategy.Cluster:
+            {
+                var newPos = position * ClusterByteSize;
+                _stream.Seek(newPos, SeekOrigin.Begin);
+                return;
+            }
+            case SetStrategy.MftRecord:
+            {
+                var newPos = CalculateMftRecordByteOffset(position);
+                _stream.Seek(newPos, SeekOrigin.Begin);
+                return;
+            }
+        }    
+    }
+
+    private long CalculateMftRecordByteOffset(long mftIndex)
+    {
+        if (mftIndex < 0)
+        {
+            throw new ArgumentException("Provided index is out of range of the MFT");
+        }
+        
+        long startOffset = 0;
+        foreach (var run in _mftDataRuns)
+        {
+            startOffset += (long)run.Offset;
+            var numberOfMftEntries = (long)run.Length * ClusterByteSize / MftRecordSize;
+            if (mftIndex <= numberOfMftEntries)
+            {
+                return startOffset * ClusterByteSize + mftIndex * MftRecordSize;
+            }
+            
+            mftIndex -= (int)numberOfMftEntries;
+        }
+
+        throw new ArgumentException("Provided index is out of range of the MFT");
     }
     
-    public void SetPosition(long position) => _stream.Seek(position, SeekOrigin.Begin);
-    public void SetPositionToMftStart() => _stream.Seek(MftOffset * ClusterByteSize, SeekOrigin.Begin);
-    public void SetLcnPosition(int lcn) => _stream.Seek((long)lcn * ClusterByteSize, SeekOrigin.Begin);
-    public void SetVcnPosition(int vcn) => _stream.Seek((long)vcn * ClusterByteSize, SeekOrigin.Current);
-
     public long GetPosition() => _stream.Position;
     
     public Span<byte> ReadBytes(int length)
@@ -49,4 +93,26 @@ public class VolumeReader
         var parsedRecord = MftRecord.Parse(rawRecord, SectorByteSize);
         return parsedRecord;
     }
+
+    public IEnumerable<MftRecord> ReadMftRecords()
+    {
+        long startOffset = 0;
+        foreach (var dataRun in _mftDataRuns)
+        {
+            startOffset += (long)dataRun.Offset;
+            _stream.Seek(startOffset * ClusterByteSize, SeekOrigin.Begin);
+            var length = (int)dataRun.Length * ClusterByteSize / MftRecordSize;
+            for (int i = 0; i < length; ++i)
+            {
+                yield return ReadMftRecord();
+            }
+        }
+    }
+}
+
+public enum SetStrategy
+{
+    Byte,
+    MftRecord,
+    Cluster,
 }

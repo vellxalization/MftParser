@@ -69,80 +69,28 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
         }
         
         var start = volumeReader.GetPosition();
-        bool firstRun = true;
-        var dataRuns = CreateDataRunsFromValue();
-        var data = new byte[Header.Nonresident.ValidDataSize];
-        int offset = 0;
-        for (int i = 0; i < dataRuns.Length - 1; ++i)
+        var dataRuns = DataRun.ParseDataRuns(Value);
+        var dataBytes = new byte[Header.Nonresident.ValidDataSize];
+        long startOffset = 0;
+        var offset = 0;
+        for (var i = 0; i < dataRuns.Length; ++i)
         {
             var dataRun = dataRuns[i];
-            ReadDataFromRun(dataRun, false);
-        }
-
-        var lastDataRun = dataRuns[^1];
-        ReadDataFromRun(lastDataRun, true);
-        volumeReader.SetPosition(start);
-        return data;
-
-        void ReadDataFromRun(DataRun dataRun, bool isLastRun)
-        {
-            if (dataRun.Offset == 0) // sparse
+            if (dataRun.Offset == 0)
             {
                 offset += (int)dataRun.Length * volumeReader.ClusterByteSize;
-                return;
-            }
-
-            if (firstRun)
-            {
-                volumeReader.SetLcnPosition((int)dataRun.Offset);
-                firstRun = false;
-            }
-            else
-            {
-                volumeReader.SetVcnPosition((int)dataRun.Offset - 1); // offset is relative to the start of the first data run
-                                                                      // so we subtract 1 'cuz we already read it
-            }
-
-            var buffer = new byte[(int)dataRun.Length * volumeReader.ClusterByteSize];
-            volumeReader.ReadBytes(buffer, 0, buffer.Length);
-            var copyLength = isLastRun ? data.Length - offset : buffer.Length;
-            Array.Copy(buffer, 0, data, offset, copyLength);
-            offset += copyLength;
-        }
-    }
-
-    private DataRun[] CreateDataRunsFromValue()
-    {
-        var i = 0;
-        List<DataRun> runs = new();
-        while (i < Value.Length)
-        {
-            var header = Value[i++];
-            var lengthBit = header & 0x0F;
-            var offsetBit = (header & 0xF0) >> 4;
-            UInt128 length = 0;
-            for (int j = 0; j < lengthBit; ++j)
-            {
-                length |= (UInt128)(Value[j + i] << (8 * j));
-            }
-            
-            i += lengthBit;
-            if (offsetBit == 0)
-            {
-                runs.Add(new DataRun(header, length, 0));
                 continue;
             }
             
-            Int128 offset = 0;
-            for (int j = 0; j < offsetBit; ++j)
-            {
-                offset |= Value[j + i] << (8 * j);
-            }
-            
-            i += offsetBit;
-            runs.Add(new DataRun(header, length, offset));
-        }
+            startOffset += (long)dataRun.Offset;
+            volumeReader.SetPosition(startOffset, SetStrategy.Cluster);
+            var buffer = new byte[(int)dataRun.Length * volumeReader.ClusterByteSize];
+            volumeReader.ReadBytes(buffer, 0, buffer.Length);
+            var copyLength = i < dataRuns.Length - 1 ? buffer.Length : dataBytes.Length - offset;
+            Array.Copy(buffer.ToArray(), 0, dataBytes, offset, copyLength);
+        } 
         
-        return runs.ToArray();
+        volumeReader.SetPosition(start, SetStrategy.Byte);
+        return dataBytes;
     }
 }
