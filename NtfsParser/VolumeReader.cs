@@ -9,18 +9,18 @@ public class VolumeReader
     public int SectorByteSize { get; }
     public int ClusterByteSize { get; }
     public int MftRecordSize { get; }
-    public long MftOffset { get; }
+
     private DataRun[] _mftDataRuns;
     
     private readonly FileStream _stream;
 
-    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize, DataRun[] MftDataRuns)
+    public VolumeReader(FileStream stream, int sectorByteSize, int clusterByteSize, int mftRecordSize, DataRun[] mftDataRuns)
     {
         _stream = stream;
         SectorByteSize = sectorByteSize;
         ClusterByteSize = clusterByteSize;
         MftRecordSize = mftRecordSize;
-        _mftDataRuns = MftDataRuns;
+        _mftDataRuns = mftDataRuns;
     }
 
     public void SetPosition(long position, SetStrategy strategy)
@@ -99,7 +99,7 @@ public class VolumeReader
         long startOffset = 0;
         foreach (var dataRun in _mftDataRuns)
         {
-            startOffset += (long)dataRun.Offset;
+            startOffset += dataRun.Offset;
             _stream.Seek(startOffset * ClusterByteSize, SeekOrigin.Begin);
             var length = (int)dataRun.Length * ClusterByteSize / MftRecordSize;
             for (int i = 0; i < length; ++i)
