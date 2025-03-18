@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.MasterFileTable.Attribute;
 
-public record struct DataRun(byte Header, UInt128 Length, Int128 Offset)
+public record struct DataRun(byte Header, long Length, long Offset)
 {
     public static DataRun[] ParseDataRuns(byte[] values)
     {
@@ -9,31 +9,53 @@ public record struct DataRun(byte Header, UInt128 Length, Int128 Offset)
         while (i < values.Length)
         {
             var header = values[i++];
-            var lengthBit = header & 0x0F;
-            var offsetBit = (header & 0xF0) >> 4;
-            UInt128 length = 0;
-            for (int j = 0; j < lengthBit; ++j)
+            var lengthNibble = header & 0x0F;
+            var offsetNibble = (header & 0xF0) >> 4;
+            long length = 0;
+            int j = 0;
+            for (; j < lengthNibble; ++j)
             {
-                length |= (UInt128)(values[j + i] << (8 * j));
+                length |= (long)values[j + i] << (8 * j);
             }
             
-            i += lengthBit;
-            if (offsetBit == 0)
+            i += lengthNibble;
+            if (offsetNibble == 0)
             {
                 runs.Add(new DataRun(header, length, 0));
                 continue;
             }
-            
-            Int128 offset = 0;
-            for (int j = 0; j < offsetBit; ++j)
+
+            j = 0;
+            long offset = 0;
+            for (; j < offsetNibble; ++j)
             {
-                offset |= values[j + i] << (8 * j);
+                offset |= (long)values[j + i] << (8 * j);
+            }
+
+            if (IsNegative(offset, j - 1))
+            {
+                OverflowNumber(ref offset, offsetNibble);
             }
             
-            i += offsetBit;
+            i += offsetNibble;
             runs.Add(new DataRun(header, length, offset));
         }
         
         return runs.ToArray();
+
+        bool IsNegative(long number, int msbIndex)
+        {
+            var mask = 0x80 << (8 * msbIndex);
+            return (number & mask) != 0;
+        }
+
+        void OverflowNumber(ref long number, int offsetLength)
+        {
+            // we're using long numbers so we calculate everything with 8 bytes per number in mind
+            for (int v = 7; v >= offsetLength; --v)
+            {
+                number |= (long)0xFF << (8 * v);
+            }
+        }
     }
 }

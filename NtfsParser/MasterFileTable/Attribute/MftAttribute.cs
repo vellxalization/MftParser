@@ -57,9 +57,6 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
             ? new RawAttributeData(GetDataFromDataRun(volumeReader)) 
             : new RawAttributeData(Value);
     }
-
-    public ulong GetActualDataSize() =>
-        Header.IsNonresident ? Header.Nonresident.DataSize : Header.Resident.Size;
     
     private byte[] GetDataFromDataRun(VolumeReader volumeReader)
     {
@@ -71,23 +68,24 @@ public record struct MftAttribute(MftAttributeHeader Header, byte[] Name, byte[]
         var start = volumeReader.GetPosition();
         var dataRuns = DataRun.ParseDataRuns(Value);
         var dataBytes = new byte[Header.Nonresident.ValidDataSize];
-        long startOffset = 0;
-        var offset = 0;
+        long clusterOffset = 0;
+        var copyOffset = 0;
         for (var i = 0; i < dataRuns.Length; ++i)
         {
             var dataRun = dataRuns[i];
             if (dataRun.Offset == 0)
             {
-                offset += (int)dataRun.Length * volumeReader.ClusterByteSize;
+                copyOffset += (int)dataRun.Length * volumeReader.ClusterByteSize;
                 continue;
             }
             
-            startOffset += (long)dataRun.Offset;
-            volumeReader.SetPosition(startOffset, SetStrategy.Cluster);
+            clusterOffset += dataRun.Offset;
+            volumeReader.SetPosition(clusterOffset, SetStrategy.Cluster);
             var buffer = new byte[(int)dataRun.Length * volumeReader.ClusterByteSize];
             volumeReader.ReadBytes(buffer, 0, buffer.Length);
-            var copyLength = i < dataRuns.Length - 1 ? buffer.Length : dataBytes.Length - offset;
-            Array.Copy(buffer.ToArray(), 0, dataBytes, offset, copyLength);
+            var copyLength = i < dataRuns.Length - 1 ? buffer.Length : dataBytes.Length - copyOffset;
+            Array.Copy(buffer, 0, dataBytes, copyOffset, copyLength);
+            copyOffset += copyLength;
         } 
         
         volumeReader.SetPosition(start, SetStrategy.Byte);
