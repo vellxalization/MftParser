@@ -1,107 +1,97 @@
 ﻿using Microsoft.Win32.SafeHandles;
-using NtfsParser.MasterFileTable.Attribute;
-using NtfsParser.MasterFileTable.MftRecord;
-using NtfsParser.MasterFileTable.ParsedAttributeData;
+using NtfsParser.Mft;
+using NtfsParser.Mft.Attribute;
+using NtfsParser.Mft.MftRecord;
 
 namespace NtfsParser;
 
 public class RawVolume : IDisposable
 {
     public BootSector.BootSector? BootSector { get; private set; }
+    public MasterFileTable MasterFileTable { get; private set; }
+    public MasterFileTable.MftReader MftReader => MasterFileTable.GetReader();
+    public VolumeReader VolumeReader { get; }
     
-    private FileStream? _stream;
-    private char _volumeLetter;
-    private SafeFileHandle? _volumeHandle;
+    private SafeFileHandle _volumeHandle;
 
     public RawVolume(char volumeLetter)
     {
-        _volumeLetter = volumeLetter;
-    }
-    
-    public VolumeReader? Initialize()
-    {
-        var fileHandle = OpenFile($@"\\.\{_volumeLetter}:");
-        if (fileHandle is null)
-        {
-            return null;
-        }
-        
+        var fileHandle = OpenFile($@"\\.\{volumeLetter}:");
         _volumeHandle = fileHandle;
-        _stream = new FileStream(_volumeHandle, FileAccess.Read);
-        var bootSector = ReadBootSector();
-        if (bootSector is null)
-        {
-            return null;
-        }
-
-        BootSector = bootSector;
-        var mftDataRuns = GetMftDataRuns(bootSector.Value.ExtBpb.LogicalClusterForMft * bootSector.Value.GetClusterByteSize(),
-            bootSector.Value.GetMftRecordByteSize(), bootSector.Value.Bpb.BytesPerSector);
-        var reader = new VolumeReader(_stream, bootSector.Value.Bpb.BytesPerSector, 
-            bootSector.Value.GetClusterByteSize(), bootSector.Value.GetMftRecordByteSize(), mftDataRuns);
-        return reader;
+        var mft = CreateMft();
+        var volumeReader = CreateVolumeReader();
+        MasterFileTable = mft;
+        VolumeReader = volumeReader;
     }
 
-    private DataRun[] GetMftDataRuns(long mftByteOffset, int mftRecordByteSize, int sectorByteSize)
+    private VolumeReader CreateVolumeReader()
     {
-        _stream!.Seek(mftByteOffset, SeekOrigin.Begin);
-        var buffer = new Span<byte>(new byte[mftRecordByteSize]);
-        _stream.ReadExactly(buffer);
-        var parsed = MftRecord.Parse(buffer, sectorByteSize);
-        var dataAttribute = parsed.Attributes.First(attr => attr.Header.Type == AttributeType.Data);
-        var rawDataRuns = dataAttribute.Value;
+        var volumeStream = new FileStream(_volumeHandle, FileAccess.Read);
+        if (BootSector is null)
+        {
+            volumeStream.Seek(0, SeekOrigin.Begin);
+            var bootSector = ReadBootSector(volumeStream);
+            BootSector = bootSector;
+        }
         
-        return DataRun.ParseDataRuns(rawDataRuns);
+        var volumeReader = new VolumeReader(volumeStream, BootSector.Value.SectorByteSize, 
+            BootSector.Value.ClusterByteSize, BootSector.Value.IndexRecordByteSize);
+        return volumeReader;
     }
     
-    private BootSector.BootSector? ReadBootSector()
+    private MasterFileTable CreateMft()
     {
-        if (_stream is null)
+        var volumeStream = new FileStream(_volumeHandle, FileAccess.Read);
+        if (BootSector is null)
         {
-            return null;
+            volumeStream.Seek(0, SeekOrigin.Begin);
+            var bootSector = ReadBootSector(volumeStream);
+            BootSector = bootSector;
         }
-        
+
+        var mftFile = ReadMftFile(volumeStream);
+        var dataAttribute = mftFile.Attributes.First(attribute => attribute.Header.Type == AttributeType.Data);
+        var dataRuns = DataRun.ParseDataRuns(dataAttribute.Value);
+        var mft = new MasterFileTable(volumeStream, dataRuns, BootSector.Value.SectorByteSize, BootSector.Value.ClusterByteSize,
+            (int)dataAttribute.Header.Nonresident.ValidDataSize, BootSector.Value.MftRecordByteSize);
+        return mft;
+    }
+
+    private MftRecord ReadMftFile(FileStream volumeStream)
+    {
+        // first file of the table is the $MFT
+        var buffer = new Span<byte>(new byte[BootSector!.Value.MftRecordByteSize]);
+        volumeStream.Seek(BootSector.Value.MftStartByteOffset, SeekOrigin.Begin);
+        volumeStream.ReadExactly(buffer);
+        var parsedMftFile = MftRecord.Parse(buffer, BootSector.Value.SectorByteSize);
+        return parsedMftFile;
+    }
+    
+    private BootSector.BootSector ReadBootSector(FileStream volumeStream)
+    {
         var rawBootSector = new Span<byte>(new byte[512]);
-        _stream.Seek(0, SeekOrigin.Begin);
-        _stream.ReadExactly(rawBootSector);
-        try
-        {
-            var bootSector = NtfsParser.BootSector.BootSector.Parse(rawBootSector);
-            return bootSector;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            return null;
-        }
+        volumeStream.Seek(0, SeekOrigin.Begin);
+        volumeStream.ReadExactly(rawBootSector);
+        var bootSector = NtfsParser.BootSector.BootSector.Parse(rawBootSector);
+        return bootSector;
     }
     
-    private SafeFileHandle? OpenFile(string path)
+    private SafeFileHandle OpenFile(string path)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
-        try
+        var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        if (!handle.IsInvalid)
         {
-            var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            if (!handle.IsInvalid)
-            {
-                return handle;
-            }
-            
-            handle.Close();
-            handle.Dispose();
-            return null;
+            return handle;
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error opening file:");
-            Console.WriteLine(ex.Message);
-            return null;
-        }
+        
+        handle.Close();
+        handle.Dispose();
+        throw new Exception("Handle is invalid"); // TODO: temp
     }
 
     public void Dispose()
     {
-        _volumeHandle?.Dispose();
-        _stream?.Dispose();
+        _volumeHandle.Dispose();
     }
 }

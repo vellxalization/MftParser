@@ -1,0 +1,21 @@
+﻿namespace NtfsParser.Mft;
+
+public record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
+{
+    public static FileReference Parse(Span<byte> rawReference)
+    {
+        var reader = new SpanBinaryReader(rawReference);
+        var segmentNumberLowPart = reader.ReadUInt32();
+        var segmentNumberHighPart = reader.ReadUInt16();
+        var sequenceNumber = reader.ReadUInt16();
+        
+        return new FileReference(segmentNumberLowPart, segmentNumberHighPart, sequenceNumber);
+    }
+    
+    public ulong GetAddress()
+    {
+        ulong offset = SegmentNumberLowPart;
+        offset |= (ulong)SegmentNumberHighPart << 32;
+        return offset;
+    }
+}
