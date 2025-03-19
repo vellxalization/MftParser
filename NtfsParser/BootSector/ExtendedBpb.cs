@@ -1,7 +1,7 @@
 ﻿namespace NtfsParser.BootSector;
 
 public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
-    sbyte ClustersPerFileRecordSegment, sbyte ClustersPerIndexBlock, long VolumeSerialNumber)
+    sbyte ClustersPerMftRecord, sbyte ClustersPerIndexRecord, long VolumeSerialNumber)
 {
     public static ExtendedBpb Parse(Span<byte> rawExBpb)
     {
@@ -10,9 +10,9 @@ public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, l
         var totalSectors = reader.ReadInt64();
         var logicalClusterForMft = reader.ReadInt64();
         var logicalClusterForMftMirr = reader.ReadInt64();
-        var clustersPerFileRecordSegment = reader.ReadSByte();
+        var clustersPerMftRecord = reader.ReadSByte();
         reader.Skip(3); // unused
-        var clustersPerIndexBlock = reader.ReadSByte();
+        var clustersPerIndexRecord = reader.ReadSByte();
         reader.Skip(3); // unused
         var volumeSerialNumber = reader.ReadInt64();
         for (int i = 0; i < 4; ++i) // checksum
@@ -25,6 +25,6 @@ public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, l
         }
 
         return new ExtendedBpb(totalSectors, logicalClusterForMft, logicalClusterForMftMirr,
-            clustersPerFileRecordSegment, clustersPerIndexBlock, volumeSerialNumber);
+            clustersPerMftRecord, clustersPerIndexRecord, volumeSerialNumber);
     }
 }

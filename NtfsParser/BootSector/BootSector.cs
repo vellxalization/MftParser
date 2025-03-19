@@ -1,8 +1,13 @@
 ﻿namespace NtfsParser.BootSector;
 
-public record struct BootSector(
-    ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
+public record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
 {
+    public int SectorByteSize => Bpb.BytesPerSector;
+    public int ClusterByteSize => Bpb.BytesPerSector * Bpb.SectorsPerCluster;
+    public int MftRecordByteSize => GetMftRecordByteSize();
+    public int IndexRecordByteSize => GetIndexRecordByteSize();
+    public long MftStartByteOffset => ExtBpb.LogicalClusterForMft * ClusterByteSize;
+    
     public static BootSector Parse(Span<byte> rawBootSector)
     {
         var reader = new SpanBinaryReader(rawBootSector);
@@ -31,10 +36,12 @@ public record struct BootSector(
         
         return new BootSector(oemId, bpb, extBpb, bootstrap.ToArray());
     }
+    
+    private int GetMftRecordByteSize() => ExtBpb.ClustersPerMftRecord > 0
+        ? ExtBpb.ClustersPerMftRecord * ClusterByteSize
+        : 1 << -ExtBpb.ClustersPerMftRecord; // 2^abs(value)
 
-    public int GetClusterByteSize() => Bpb.SectorsPerCluster * Bpb.BytesPerSector;
-
-    public int GetMftRecordByteSize() => ExtBpb.ClustersPerFileRecordSegment > 0
-        ? ExtBpb.ClustersPerFileRecordSegment * GetClusterByteSize()
-        : 1 << -ExtBpb.ClustersPerFileRecordSegment; // 2^abs(value)
+    private int GetIndexRecordByteSize() => ExtBpb.ClustersPerIndexRecord > 0
+        ? ExtBpb.ClustersPerIndexRecord * ClusterByteSize 
+        : 1 << -ExtBpb.ClustersPerMftRecord; // 2^abs(value)
 }
