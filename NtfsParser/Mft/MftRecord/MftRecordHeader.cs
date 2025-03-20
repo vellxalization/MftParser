@@ -8,6 +8,11 @@ public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequ
     {
         var rawHeader = reader.ReadBytes(8);
         var header = MultiSectorHeader.Parse(rawHeader);
+        if (header.Signature == MftSignature.Empty)
+        {
+            return default;
+        }
+        
         var logfileSequenceNumber = reader.ReadUInt64();
         var sequenceNumber = reader.ReadUInt16();
         var referenceCount = reader.ReadUInt16();

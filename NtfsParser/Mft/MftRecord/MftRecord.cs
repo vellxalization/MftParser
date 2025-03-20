@@ -8,6 +8,11 @@ public record struct MftRecord(MftRecordHeader RecordHeader, MftAttribute[] Attr
     {
         var reader = new SpanBinaryReader(rawMftRecord);
         var header = MftRecordHeader.CreateFromStream(ref reader);
+        if (header.Header.Signature == MftSignature.Empty)
+        {
+            return default;
+        }
+        
         header.FixUp.ReverseFixUp(rawMftRecord, sectorSize);
         reader.Position = header.AttributesOffset;
         var attributes = new List<MftAttribute>(1);

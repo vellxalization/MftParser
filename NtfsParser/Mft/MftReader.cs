@@ -45,6 +45,8 @@ public partial class MasterFileTable
                 _currentDataRunMftByteOffset = startOffset * _mft._clusterByteSize;
                 _currentDataRunIndex = i;
                 _currentIndexInsideDataRun = (int)indexCopy;
+                var streamBytePosition = _currentDataRunMftByteOffset + _currentIndexInsideDataRun * _mft.MftRecordByteSize;
+                _mft._volumeStream.Seek(streamBytePosition, SeekOrigin.Begin);
                 return;
             }
             
