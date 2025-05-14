@@ -13,15 +13,11 @@ public record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb Ex
         var reader = new SpanBinaryReader(rawBootSector);
         var jmp = reader.ReadBytes(3);
         if (jmp is not [0xEB, 0x52, 0x90])
-        {
-            throw new InvalidJmpException(jmp.ToArray(), reader.Position);
-        }
+            throw new InvalidJmpException(jmp, reader.Position);
         
         var oemId = reader.ReadUInt64();
-        if (oemId != 0x202020205346544E)
-        {
+        if (oemId != 0x202020205346544E) // "    SFTN"
             throw new InvalidOemIdException(oemId, reader.Position);
-        }
 
         var rawBpb = reader.ReadBytes(25);
         var bpb = BiosParamsBlock.Parse(rawBpb);
@@ -30,9 +26,7 @@ public record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb Ex
         var bootstrap = reader.ReadBytes(426);
         var sectorEnd = reader.ReadUInt16();
         if (sectorEnd != 0xAA55)
-        {
             throw new InvalidEndMarkerException(sectorEnd);
-        }
         
         return new BootSector(oemId, bpb, extBpb, bootstrap.ToArray());
     }

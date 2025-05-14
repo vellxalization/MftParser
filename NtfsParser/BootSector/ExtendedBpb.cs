@@ -19,9 +19,7 @@ public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, l
         {
             var shouldBeZero = reader.ReadByte();
             if (shouldBeZero != 0)
-            {
-                throw new ShouldBeZeroException(shouldBeZero, reader.Position);
-            }
+                throw new ZeroedFieldException(shouldBeZero, reader.Position);
         }
 
         return new ExtendedBpb(totalSectors, logicalClusterForMft, logicalClusterForMftMirr,

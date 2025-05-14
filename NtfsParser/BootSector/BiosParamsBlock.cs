@@ -12,9 +12,7 @@ public record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerClust
         { 
             var shouldBeZero = reader.ReadByte();
             if (shouldBeZero != 0)
-            {
-                throw new ShouldBeZeroException(shouldBeZero, reader.Position);
-            }
+                throw new ZeroedFieldException(shouldBeZero, reader.Position);
         }
         
         var mediaDescriptor = reader.ReadByte();
@@ -22,9 +20,7 @@ public record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerClust
         {
             var shouldBeZero = reader.ReadByte();
             if (shouldBeZero != 0)
-            {
-                throw new ShouldBeZeroException(shouldBeZero, reader.Position);
-            }
+                throw new ZeroedFieldException(shouldBeZero, reader.Position);
         }
         
         var sectorsPerTrack = reader.ReadUInt16(); // not used but still store it
@@ -34,9 +30,7 @@ public record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerClust
         {
             var shouldBeZero = reader.ReadByte();
             if (shouldBeZero != 0)
-            {
-                throw new ShouldBeZeroException(shouldBeZero, reader.Position);
-            }
+                throw new ZeroedFieldException(shouldBeZero, reader.Position);
         }
         
         return new BiosParamsBlock(bytesPerSector, sectorsPerCluster, mediaDescriptor, sectorsPerTrack, numberOfHeads, hiddenSectors);
