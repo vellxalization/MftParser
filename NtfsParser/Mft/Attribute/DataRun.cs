@@ -1,61 +1,62 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
-public record struct DataRun(byte Header, long Length, long Offset)
+public record struct DataRun(long Length, long Offset, bool IsSparse)
 {
-    public static DataRun[] ParseDataRuns(byte[] values)
+    public static DataRun[] ParseDataRuns(byte[] rawDataRuns)
     {
-        var i = 0;
+        var span = rawDataRuns.AsSpan();
         List<DataRun> runs = new();
-        while (i < values.Length)
+        var i = 0;
+        while (i < rawDataRuns.Length)
         {
-            var header = values[i++];
+            var header = rawDataRuns[i++];
             var lengthNibble = header & 0x0F;
             var offsetNibble = (header & 0xF0) >> 4;
-            long length = 0;
-            int j = 0;
-            for (; j < lengthNibble; ++j)
-            {
-                length |= (long)values[j + i] << (8 * j);
-            }
-            
-            i += lengthNibble;
-            if (offsetNibble == 0)
-            {
-                runs.Add(new DataRun(header, length, 0));
-                continue;
-            }
-
-            j = 0;
-            long offset = 0;
-            for (; j < offsetNibble; ++j)
-            {
-                offset |= (long)values[j + i] << (8 * j);
-            }
-
-            if (IsNegative(offset, j - 1))
-            {
-                OverflowNumber(ref offset, offsetNibble);
-            }
-            
-            i += offsetNibble;
-            runs.Add(new DataRun(header, length, offset));
+            var dataRunLength = lengthNibble + offsetNibble;
+            var rawDataRun = span.Slice(i, dataRunLength);
+            i += dataRunLength;
+            runs.Add(ParseDataRun(rawDataRun, lengthNibble, offsetNibble));
         }
         
         return runs.ToArray();
+    }
 
-        bool IsNegative(long number, int msbIndex)
-        {
-            var mask = 0x80 << (8 * msbIndex);
-            return (number & mask) != 0;
-        }
+    private static DataRun ParseDataRun(Span<byte> rawDataRun, int lengthNibble, int offsetNibble)
+    {
+        var rawLength = rawDataRun[..lengthNibble];
+        var length = BytesToLong(rawLength);
+        if (offsetNibble == 0)
+            return new DataRun(length, 0, true);
 
-        void OverflowNumber(ref long number, int offsetLength)
-        {
-            // we're using long numbers so we calculate everything with 8 bytes per number in mind
-            for (int v = 7; v >= offsetLength; --v)
-            {
-                number |= (long)0xFF << (8 * v);
-            }
-        }
+        var rawOffset = rawDataRun.Slice(lengthNibble, offsetNibble);
+        var offset = BytesToLong(rawOffset);
+        if (IsNegative(offset, offsetNibble - 1))
+            offset = OverflowNumber(offset, offsetNibble);
+        
+        return new DataRun(length, offset, false);
+    }
+
+    private static long BytesToLong(Span<byte> data)
+    {
+        long value = 0;
+        for (var j = 0; j < data.Length; ++j)
+            value |= (long)data[j] << (8 * j);
+
+        return value;
+    }
+
+    private static bool IsNegative(long number, int msbIndex)
+    {
+        var mask = 0x80 << (8 * msbIndex);
+        return (number & mask) != 0;
+    }
+
+    private static long OverflowNumber(long number, int offsetLength)
+    {
+        // we're using long numbers so we calculate everything with 8 bytes per number in mind
+        for (var v = 7; v >= offsetLength; --v)
+            number |= (long)0xFF << (8 * v);
+        
+        return number;
     }
 }

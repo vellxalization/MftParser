@@ -7,9 +7,7 @@ public record struct MftAttributeHeader(AttributeType Type, uint Size, bool IsNo
     {
         var type = reader.ReadUInt32();
         if (type == 0xffffffff)
-        {
             return new MftAttributeHeader(AttributeType.EndOfAttributeList, 0, false, 0, 0, 0, 0, default, default);
-        }
         
         var size = reader.ReadUInt32();
         var nonresidentFlag = reader.ReadByte();
@@ -25,7 +23,7 @@ public record struct MftAttributeHeader(AttributeType Type, uint Size, bool IsNo
                 (AttributeHeaderFlags)dataFlags, attributeId, resident, default);
         }
 
-        var rawNonresident = reader.ReadBytes(56); // it can be either 48 or 56 bytes in size. 
+        var rawNonresident = reader.ReadBytes(56);
         var nonresident = Nonresident.Parse(rawNonresident);
         return new MftAttributeHeader((AttributeType)type, size, true, nameSize, nameOffset, 
             (AttributeHeaderFlags)dataFlags, attributeId, default, nonresident);
@@ -36,7 +34,6 @@ public record struct MftAttributeHeader(AttributeType Type, uint Size, bool IsNo
 public enum AttributeHeaderFlags
 {
     IsCompressed = 0x0001,
-    FlagCompressionMask = 0x00ff,
     IsEncrypted = 0x4000,
     IsSparse = 0x8000
 }

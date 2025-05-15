@@ -3,15 +3,12 @@ public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequ
     ushort ReferenceCount, ushort AttributesOffset, MftRecordHeaderFlags EntryFlags, uint UsedEntrySize, uint AllocatedEntrySize,
     FileReference BaseRecordReference, ushort FirstAttributeId, FixUp FixUp)
 {
-    // TODO: ^ "Type with suspicious equality is used as a member of a record type?" :raised_eyebrow: ^
     public static MftRecordHeader CreateFromStream(ref SpanBinaryReader reader)
     {
         var rawHeader = reader.ReadBytes(8);
         var header = MultiSectorHeader.Parse(rawHeader);
         if (header.Signature == MftSignature.Empty)
-        {
             return default;
-        }
         
         var logfileSequenceNumber = reader.ReadUInt64();
         var sequenceNumber = reader.ReadUInt16();
@@ -23,7 +20,7 @@ public record struct MftRecordHeader(MultiSectorHeader Header, ulong LogFileSequ
         var rawReference = reader.ReadBytes(8);
         var baseRecordReference = FileReference.Parse(rawReference);
         var firstAttributeId = reader.ReadUInt16();
-        reader.Position = header.FixUpOffset; // move position to the update sequence array
+        reader.Position = header.FixUpOffset;
         var rawFixUp = reader.ReadBytes(header.FixUpLength * 2);
         var fixUp = FixUp.Parse(rawFixUp);
         // TODO: there can be 2 additional fields depending on the OS version but I will ignore them for now

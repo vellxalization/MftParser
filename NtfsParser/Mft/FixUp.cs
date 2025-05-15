@@ -17,10 +17,13 @@ public record struct FixUp(byte[] Placeholder, byte[] Values)
         for (int i = 0; i < fixUpLength; ++i)
         {
             var lastBytesOffset = (i + 1) * sectorSize - 2;
-            if (entry[lastBytesOffset] != Placeholder[0] 
-                || entry[lastBytesOffset + 1] != Placeholder[1])
+            if (entry[lastBytesOffset] != Placeholder[0])
             {
-                throw new Exception("Fixup mismatch. Possibly a corrupted sector!"); // TODO: temp solution
+                throw new FixUpMismatchException(Placeholder[0], entry[lastBytesOffset]);
+            }
+            if (entry[lastBytesOffset + 1] != Placeholder[1])
+            {
+                throw new FixUpMismatchException(Placeholder[1], entry[lastBytesOffset + 1]);
             }
 
             var valuesOffset = i * 2;

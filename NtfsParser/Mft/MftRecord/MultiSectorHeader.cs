@@ -11,7 +11,7 @@ public record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffse
             [0, 0, 0, 0] => MftSignature.Empty,
             [(byte)'F', (byte)'I', (byte)'L', (byte)'E'] => MftSignature.File,
             [(byte)'B', (byte)'A', (byte)'A', (byte)'D'] => MftSignature.Baad,
-            _ => throw new Exception("Unknown signature") // TODO: temp solution
+            _ => throw new InvalidMftRecordException(signature)
         };
         
         var fixUpOffset = reader.ReadUInt16();
