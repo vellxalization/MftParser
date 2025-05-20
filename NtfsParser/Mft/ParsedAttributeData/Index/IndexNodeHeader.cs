@@ -1,6 +1,6 @@
-﻿namespace NtfsParser.Mft.ParsedAttributeData;
+﻿namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public record struct IndexNodeHeader(uint EntryListOffset, uint EntryListEndOffset, uint EntryListBufferEndOffset, 
+public record struct IndexNodeHeader(uint EntryListOffset, uint EntryListEndOffset, uint EntryListBufferEndOffset,
     bool HasChildren)
 {
     public static IndexNodeHeader Parse(Span<byte> rawHeader)

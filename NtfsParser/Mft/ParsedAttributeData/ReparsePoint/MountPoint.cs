@@ -3,7 +3,7 @@
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
 public record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset, 
-    ushort PrintNameSize, byte[] SubstituteName, byte[] PrintName)
+    ushort PrintNameSize, UnicodeName SubstituteName, UnicodeName PrintName)
 {
     public static MountPoint CreateFromRawData(RawReparseData rawData)
     {
@@ -13,6 +13,7 @@ public record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNa
         var substituteNameSize = reader.ReadUInt16();
         var printNameOffset = reader.ReadUInt16(); // relative to the start of the data
         var printNameSize = reader.ReadUInt16();
+
         var dataStart = reader.Position;
         reader.Position = dataStart + substituteNameOffset;
         var substituteName = reader.ReadBytes(substituteNameSize);
@@ -20,9 +21,6 @@ public record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNa
         var printName = reader.ReadBytes(printNameSize);
         
         return new MountPoint(substituteNameOffset, substituteNameSize, printNameOffset, printNameSize, 
-            substituteName.ToArray(), printName.ToArray());
+            new UnicodeName(substituteName.ToArray()), new UnicodeName(printName.ToArray()));
     }
-
-    public string GetStringSubstituteName() => Encoding.Unicode.GetString(SubstituteName);
-    public string GetStringPrintName() => Encoding.Unicode.GetString(PrintName);
 }

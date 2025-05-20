@@ -4,32 +4,31 @@ namespace NtfsParser.Mft;
 
 public partial class MasterFileTable
 {
-    public int MftTableByteSize { get; }
-    public int MftRecordByteSize { get; }
-    
-    private int _sectorByteSize;
-    private int _clusterByteSize;
-    private readonly FileStream _volumeStream;
-    private readonly DataRun[] _mftDataRuns;
+    public MftReader Reader => _reader ?? CreateReader();
     private MftReader? _reader;
 
-    public MasterFileTable(FileStream volumeStream, DataRun[] mftDataRuns, int sectorByteSize, int clusterByteSize, int mftTableByteSize, int mftRecordByteSize)
+    public int SizeInRecords { get; }
+    public int SizeInBytes { get; }
+    public int RecordByteSize { get; }
+    public int SectorByteSize { get; }
+    public int ClusterByteSize { get; }
+
+    private readonly FileStream _volumeStream;
+    private readonly DataRun[] _mftDataRuns;
+
+    public MasterFileTable(FileStream volumeStream, DataRun[] mftDataRuns, int sectorByteSize, int clusterByteSize, int sizeInBytes, int recordByteSize)
     {
         _volumeStream = volumeStream;
         _mftDataRuns = mftDataRuns;
-        _sectorByteSize = sectorByteSize;
-        _clusterByteSize = clusterByteSize;
-        MftTableByteSize = mftTableByteSize;
-        MftRecordByteSize = mftRecordByteSize;
+        SectorByteSize = sectorByteSize;
+        SizeInRecords = sizeInBytes / recordByteSize;
+        ClusterByteSize = clusterByteSize;
+        SizeInBytes = sizeInBytes;
+        RecordByteSize = recordByteSize;
     }
-    
-    public MftReader GetReader()
-    {
-        if (_reader is not null)
-        {
-            return _reader;
-        }
 
+    private MftReader CreateReader()
+    {
         var reader = new MftReader(this);
         _reader = reader;
         return _reader;

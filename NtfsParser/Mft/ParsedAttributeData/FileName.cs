@@ -1,11 +1,10 @@
-﻿using System.Text;
-using NtfsParser.Mft.Attribute;
+﻿using NtfsParser.Mft.Attribute;
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
 public record struct FileName(FileReference ReferenceToParentDirectory, FileTime FileCreated, FileTime FileAltered,
     FileTime MftChanged, FileTime FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,
-    byte FilenameLength, byte FilenameNamespace, byte[] UnicodeFilename)
+    byte FilenameLength, byte FilenameNamespace, UnicodeName Name)
 {
     public static FileName CreateFromRawData(RawAttributeData rawData)
     {
@@ -27,10 +26,8 @@ public record struct FileName(FileReference ReferenceToParentDirectory, FileTime
         return new FileName(referenceToParentDirectory, new FileTime((long)fileCreated), 
             new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
             new FileTime((long)fileRead), allocatedFileSize, realFileSize, (FileNameFlags)flags, eaReparse,
-            filenameLength, filenameNamespace, filename.ToArray());
+            filenameLength, filenameNamespace, new UnicodeName(filename.ToArray()));
     }
-
-    public string GetStringFileName() => Encoding.Unicode.GetString(UnicodeFilename);
 }
 
 [Flags]

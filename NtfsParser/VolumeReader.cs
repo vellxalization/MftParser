@@ -1,10 +1,8 @@
-﻿using NtfsParser.Mft.Attribute;
-using NtfsParser.Mft.MftRecord;
-
-namespace NtfsParser;
+﻿namespace NtfsParser;
 
 public class VolumeReader
 {
+    public long Position => _volumeStream.Position;
     public int SectorByteSize { get; }
     public int ClusterByteSize { get; }
     public int IndexRecordByteSize { get; }
@@ -36,8 +34,6 @@ public class VolumeReader
             }
         }    
     }
-    
-    public long GetPosition() => _volumeStream.Position;
     
     public Span<byte> ReadBytes(int length)
     {

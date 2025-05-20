@@ -19,12 +19,10 @@ public record struct StandardInformation(FileTime FileCreated, FileTime FileAlte
         var versionNumber = reader.ReadUInt32();
         var classId = reader.ReadUInt32();
         if (rawData.Data.Length <= 48)
-        {
             return new StandardInformation(new FileTime((long)fileCreated), 
                 new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
                 new FileTime((long)fileRead), (DosPermissions)dosPermissions, maxVersions, versionNumber,
                 classId, 0, 0, 0, 0);
-        }
         
         var ownerId = reader.ReadUInt32();
         var securityId = reader.ReadUInt32();

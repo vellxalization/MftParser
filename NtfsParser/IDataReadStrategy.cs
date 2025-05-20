@@ -1,6 +1,6 @@
-﻿using LZNT1Decompressor;
-using NtfsParser.Mft;
+﻿using NtfsParser.Mft;
 using NtfsParser.Mft.Attribute;
+using NtfsParser.Mft.Decompression;
 
 namespace NtfsParser;
 
@@ -20,9 +20,7 @@ public class NonresidentNoSparseStrategy : IDataReadStrategy
     public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute)
     {
         if (attribute.Header.Nonresident.ActualSizeByte == 0)
-        {
             return new RawAttributeData([]);
-        }
         
         var dataRuns = DataRun.ParseDataRuns(attribute.Value);
         var data = new byte[attribute.Header.Nonresident.AllocatedSizeByte];
@@ -46,9 +44,7 @@ public class NonresidentSparseStrategy : IDataReadStrategy
     public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute)
     {
         if (attribute.Header.Nonresident.ActualSizeByte == 0)
-        {
             return new RawAttributeData([]);
-        }
         
         var dataRuns = DataRun.ParseDataRuns(attribute.Value);
         var data = new byte[attribute.Header.Nonresident.AllocatedSizeByte];
@@ -78,9 +74,7 @@ public class NonresidentCompressedStrategy : IDataReadStrategy
     public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute)
     {
         if (attribute.Header.Nonresident.ActualSizeByte == 0)
-        {
             return new RawAttributeData([]);
-        }
         
         var dataRuns = DataRun.ParseDataRuns(attribute.Value);
         var data = new byte[attribute.Header.Nonresident.AllocatedClustersSizeByte];
@@ -90,9 +84,7 @@ public class NonresidentCompressedStrategy : IDataReadStrategy
         {
             var readSize = (int)run.Length * reader.ClusterByteSize;
             if (run.IsSparse)
-            {
                 continue;
-            }
             
             clusterOffset += run.Offset;
             reader.SetPosition(clusterOffset, SetStrategy.Cluster);

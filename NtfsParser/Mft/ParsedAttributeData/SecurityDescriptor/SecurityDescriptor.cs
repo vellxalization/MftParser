@@ -11,7 +11,7 @@ public record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessC
         var reader = new SpanBinaryReader(data);
         var rawHeader = reader.ReadBytes(20);
         var header = SecurityDescriptorHeader.Parse(rawHeader);
-        AccessControlList sacl;
+        AccessControlList sacl = default;
         if (header.ControlFlags.HasFlag(SecurityDescriptorControlFlags.SaclPresent))
         {
             var boundary = (int)(header.ControlFlags.HasFlag(SecurityDescriptorControlFlags.DaclPresent)
@@ -21,22 +21,14 @@ public record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessC
             var rawSacl = reader.ReadBytes(boundary - reader.Position);
             sacl = AccessControlList.Parse(rawSacl);
         }
-        else
-        {
-            sacl = default;
-        }
 
-        AccessControlList dacl;
+        AccessControlList dacl = default;
         if (header.ControlFlags.HasFlag(SecurityDescriptorControlFlags.DaclPresent))
         {
             var boundary = (int)header.OffsetToUserSid;
             reader.Position = (int)header.OffsetToDacl;
             var rawDacl = reader.ReadBytes(boundary - reader.Position);
             dacl = AccessControlList.Parse(rawDacl);
-        }
-        else
-        {
-            dacl = default;
         }
 
         reader.Position = (int)header.OffsetToUserSid;
@@ -64,4 +56,23 @@ public enum SecurityDescriptorControlFlags : ushort
     SaclProtected = 0x2000,
     RmControlValid = 0x4000,
     SelfRelative = 0x8000
+}
+
+public record struct SecurityDescriptorHeader(byte Revision, SecurityDescriptorControlFlags ControlFlags, uint OffsetToUserSid,
+    uint OffsetToGroupSid, uint OffsetToSacl, uint OffsetToDacl)
+{
+    public static SecurityDescriptorHeader Parse(Span<byte> rawData)
+    {
+        var reader = new SpanBinaryReader(rawData);
+        var revision = reader.ReadByte();
+        reader.Skip(1); // padding
+        var controlFlags = (SecurityDescriptorControlFlags)reader.ReadUInt16();
+        var offsetToUserSid = reader.ReadUInt32();
+        var offsetToGroupSid = reader.ReadUInt32();
+        var offsetToSacl = reader.ReadUInt32();
+        var offsetToDacl = reader.ReadUInt32();
+
+        return new SecurityDescriptorHeader(revision, controlFlags, offsetToUserSid, offsetToGroupSid, offsetToSacl,
+            offsetToDacl);
+    }
 }

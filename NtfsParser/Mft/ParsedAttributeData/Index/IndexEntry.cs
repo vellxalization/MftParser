@@ -1,9 +1,27 @@
-﻿namespace NtfsParser.Mft.ParsedAttributeData;
+﻿namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags, 
+public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags,
     byte[] Content, ulong ChildVcn)
 {
-    public static IndexEntry Parse(Span<byte> rawEntry)
+    public static IndexEntry[] ParseEntries(Span<byte> rawEntries)
+    {
+        if (rawEntries.Length == 0)
+            return [];
+
+        var parsedEntries = new List<IndexEntry>();
+        var parsedEntry = Parse(rawEntries);
+        while (!parsedEntry.Flags.HasFlag(IndexEntryFlags.ChildExists))
+        {
+            parsedEntries.Add(parsedEntry);
+            rawEntries = rawEntries[..parsedEntry.EntryLength];
+            parsedEntry = Parse(rawEntries);
+        }
+
+        parsedEntries.Add(parsedEntry); // add last entry
+        return parsedEntries.ToArray();
+    }
+
+    private static IndexEntry Parse(Span<byte> rawEntry)
     {
         var reader = new SpanBinaryReader(rawEntry);
         var bytes = reader.ReadBytes(8);
@@ -12,9 +30,7 @@ public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort Content
         var flags = (IndexEntryFlags)reader.ReadUInt32();
         var content = reader.ReadBytes(contentLength);
         if (!flags.HasFlag(IndexEntryFlags.ChildExists))
-        {
             return new IndexEntry(bytes.ToArray(), entryLength, contentLength, flags, content.ToArray(), 0);
-        }
 
         reader.Position = entryLength - 8;
         var childVcn = reader.ReadUInt64();

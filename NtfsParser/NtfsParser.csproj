@@ -6,5 +6,5 @@
         <Nullable>enable</Nullable>
         <RootNamespace>NtfsParser</RootNamespace>
     </PropertyGroup>
-
+    
 </Project>

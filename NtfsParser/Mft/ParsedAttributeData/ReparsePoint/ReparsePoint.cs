@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using NtfsParser.Mft.Attribute;
+﻿using NtfsParser.Mft.Attribute;
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
@@ -16,7 +15,7 @@ public record struct ReparsePoint(ReparseTag ReparseTag, ushort DataSize, RawRep
         if (!reparseTag.GetFlags().HasFlag(ReparseFlags.IsMicrosoft))
         {
             var guidBytes = reader.ReadBytes(16);
-            thirdPartyGuid = Guid.Parse(MemoryMarshal.Cast<byte, char>(guidBytes));
+            thirdPartyGuid = new Guid(guidBytes);
         }
         var reparseData = reader.ReadBytes(reparseDataSize);
         

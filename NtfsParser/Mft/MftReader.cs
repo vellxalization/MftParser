@@ -1,4 +1,6 @@
-﻿namespace NtfsParser.Mft;
+﻿using NtfsParser.Mft.MftRecord;
+
+namespace NtfsParser.Mft;
 
 public partial class MasterFileTable
 {
@@ -22,17 +24,15 @@ public partial class MasterFileTable
 
         private void SetMftIndex(int mftIndex)
         {
-            if (mftIndex < 0 || mftIndex >= _mft.MftTableByteSize / _mft.MftRecordByteSize)
-            {
+            if (mftIndex < 0 || mftIndex >= _mft.SizeInRecords)
                 throw new ArgumentException("Provided index is out of MFT range.");
-            }
 
             long indexCopy = mftIndex;
             long startOffset = 0;
             for (int i = 0; i < _mft._mftDataRuns.Length; ++i)
             {
                 var run = _mft._mftDataRuns[i];
-                var runRecordLength = run.Length * _mft._clusterByteSize / _mft.MftRecordByteSize;
+                var runRecordLength = run.Length * _mft.ClusterByteSize / _mft.RecordByteSize;
                 startOffset += run.Offset;
                 if (indexCopy - runRecordLength  >= 0) // index is not in this run
                 {
@@ -42,10 +42,10 @@ public partial class MasterFileTable
                 
                 _mftIndex = mftIndex;
                 _currentDataRunRecordLength = runRecordLength;
-                _currentDataRunMftByteOffset = startOffset * _mft._clusterByteSize;
+                _currentDataRunMftByteOffset = startOffset * _mft.ClusterByteSize;
                 _currentDataRunIndex = i;
                 _currentIndexInsideDataRun = (int)indexCopy;
-                var streamBytePosition = _currentDataRunMftByteOffset + _currentIndexInsideDataRun * _mft.MftRecordByteSize;
+                var streamBytePosition = _currentDataRunMftByteOffset + _currentIndexInsideDataRun * _mft.RecordByteSize;
                 _mft._volumeStream.Seek(streamBytePosition, SeekOrigin.Begin);
                 return;
             }
@@ -56,46 +56,49 @@ public partial class MasterFileTable
         public MftRecord.MftRecord ReadMftRecord()
         {
             if (!CanRead)
-            {
-                throw new Exception("End of the MFT is reached."); // TODO: temp
-            }
+                throw new EndOfMftException();
             
-            var buffer = new Span<byte>(new byte[_mft.MftRecordByteSize]);
+            var buffer = new Span<byte>(new byte[_mft.RecordByteSize]);
             _mft._volumeStream.ReadExactly(buffer);
-            var parsed = MftRecord.MftRecord.Parse(buffer, _mft._sectorByteSize);
+            var parsed = MftRecord.MftRecord.Parse(buffer, _mft.SectorByteSize);
             AdvanceForward();
             return parsed;
         }
-
-        public IEnumerable<MftRecord.MftRecord> ReadMftFromTheStart()
+ 
+        public IEnumerable<MftRecord.MftRecord> StartReadingMft(MftIteratorOptions? options = null)
         {
-            MftIndex = 0;
+            var ignoreEmpty = options?.IgnoreEmpty ?? false;
+            var ignoreUnused = options?.IgnoreUnused ?? false;
+            MftIndex = options?.StartFrom ?? 0;
             while (CanRead)
             {
-                yield return ReadMftRecord();
+                var record = ReadMftRecord();
+                var header = record.RecordHeader;
+                if (ignoreEmpty && header.Header.Signature == MftSignature.Empty 
+                    || ignoreUnused && (header.EntryFlags & MftRecordHeaderFlags.InUse) == 0)
+                    continue;
+
+                yield return record;
             }
         }
         
         private void AdvanceForward()
         {
             ++_mftIndex;
-            ++_currentIndexInsideDataRun;
-            if (_currentIndexInsideDataRun < _currentDataRunRecordLength)
-            {
+            if (++_currentIndexInsideDataRun < _currentDataRunRecordLength)
                 return; // there is still data in current data run
-            }
-
-            ++_currentDataRunIndex;
-            if (_currentDataRunIndex >= _mft._mftDataRuns.Length)
-            {
+            
+            if (++_currentDataRunIndex >= _mft._mftDataRuns.Length)
                 return; // no more data runs to read data from
-            }
             
             var nextDataRun = _mft._mftDataRuns[_currentDataRunIndex];
             _currentIndexInsideDataRun = 0;
-            _currentDataRunMftByteOffset += nextDataRun.Offset * _mft._clusterByteSize;
-            _currentDataRunRecordLength = nextDataRun.Length * _mft._clusterByteSize / _mft.MftRecordByteSize;
-            _mft._volumeStream.Position = _currentDataRunMftByteOffset;
+            _currentDataRunMftByteOffset += nextDataRun.Offset * _mft.ClusterByteSize;
+            _currentDataRunRecordLength = nextDataRun.Length * _mft.ClusterByteSize / _mft.RecordByteSize;
+            _mft._volumeStream.Seek(_currentDataRunMftByteOffset, SeekOrigin.Begin);
         }
     }
+
+    public record MftIteratorOptions(bool IgnoreEmpty = false, bool IgnoreUnused = false, int StartFrom = 0);
+    public class EndOfMftException() : Exception("Tried to read past MFT");
 }

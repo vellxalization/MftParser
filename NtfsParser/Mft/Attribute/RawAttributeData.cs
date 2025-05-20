@@ -1,8 +1,5 @@
 ﻿using NtfsParser.Mft.ParsedAttributeData;
-using NtfsParser.Mft.ParsedAttributeData.AttributeList;
-using NtfsParser.Mft.ParsedAttributeData.ExtendedAttribute;
-using NtfsParser.Mft.ParsedAttributeData.IndexAllocation;
-using NtfsParser.Mft.ParsedAttributeData.IndexRoot;
+using NtfsParser.Mft.ParsedAttributeData.Index;
 using NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 using NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 

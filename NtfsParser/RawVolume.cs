@@ -7,9 +7,9 @@ namespace NtfsParser;
 
 public class RawVolume : IDisposable
 {
-    public BootSector.BootSector? BootSector { get; private set; }
+    public BootSector.BootSector BootSector { get; private set; }
     public MasterFileTable MasterFileTable { get; private set; }
-    public MasterFileTable.MftReader MftReader => MasterFileTable.GetReader();
+    public MasterFileTable.MftReader MftReader => MasterFileTable.Reader;
     public VolumeReader VolumeReader { get; }
     
     private SafeFileHandle _volumeHandle;
@@ -18,52 +18,46 @@ public class RawVolume : IDisposable
     {
         var fileHandle = OpenFile($@"\\.\{volumeLetter}:");
         _volumeHandle = fileHandle;
-        var mft = CreateMft();
+
         var volumeReader = CreateVolumeReader();
-        MasterFileTable = mft;
         VolumeReader = volumeReader;
+        var mft = CreateMft();
+        MasterFileTable = mft;
     }
 
     private VolumeReader CreateVolumeReader()
     {
+        // this method will be called first in ctor so we also use it to create boot sector since we need
+        // a filestream
         var volumeStream = new FileStream(_volumeHandle, FileAccess.Read);
-        if (BootSector is null)
-        {
-            volumeStream.Seek(0, SeekOrigin.Begin);
-            var bootSector = ReadBootSector(volumeStream);
-            BootSector = bootSector;
-        }
+        var bootSector = ReadBootSector(volumeStream);
+        BootSector = bootSector;
         
-        var volumeReader = new VolumeReader(volumeStream, BootSector.Value.SectorByteSize, 
-            BootSector.Value.ClusterByteSize, BootSector.Value.IndexRecordByteSize);
+        var volumeReader = new VolumeReader(volumeStream, BootSector.SectorByteSize, 
+            BootSector.ClusterByteSize, BootSector.IndexRecordByteSize);
+        
         return volumeReader;
     }
     
     private MasterFileTable CreateMft()
     {
-        var volumeStream = new FileStream(_volumeHandle, FileAccess.Read);
-        if (BootSector is null)
-        {
-            volumeStream.Seek(0, SeekOrigin.Begin);
-            var bootSector = ReadBootSector(volumeStream);
-            BootSector = bootSector;
-        }
-
+        var volumeStream = new FileStream(_volumeHandle, FileAccess.Read, BootSector.MftRecordByteSize * 8);
         var mftFile = ReadMftFile(volumeStream);
         var dataAttribute = mftFile.Attributes.First(attribute => attribute.Header.Type == AttributeType.Data);
         var dataRuns = DataRun.ParseDataRuns(dataAttribute.Value);
-        var mft = new MasterFileTable(volumeStream, dataRuns, BootSector.Value.SectorByteSize, BootSector.Value.ClusterByteSize,
-            (int)dataAttribute.Header.Nonresident.ValidDataSize, BootSector.Value.MftRecordByteSize);
+        var mft = new MasterFileTable(volumeStream, dataRuns, BootSector.SectorByteSize, BootSector.ClusterByteSize,
+            (int)dataAttribute.Header.Nonresident.AllocatedSizeByte, BootSector.MftRecordByteSize);
+        
         return mft;
     }
 
     private MftRecord ReadMftFile(FileStream volumeStream)
     {
         // first file of the table is the $MFT
-        var buffer = new Span<byte>(new byte[BootSector!.Value.MftRecordByteSize]);
-        volumeStream.Seek(BootSector.Value.MftStartByteOffset, SeekOrigin.Begin);
+        var buffer = new Span<byte>(new byte[BootSector.MftRecordByteSize]);
+        volumeStream.Seek(BootSector.MftStartByteOffset, SeekOrigin.Begin);
         volumeStream.ReadExactly(buffer);
-        var parsedMftFile = MftRecord.Parse(buffer, BootSector.Value.SectorByteSize);
+        var parsedMftFile = MftRecord.Parse(buffer, BootSector.SectorByteSize);
         return parsedMftFile;
     }
     
@@ -81,13 +75,11 @@ public class RawVolume : IDisposable
         ArgumentException.ThrowIfNullOrEmpty(path);
         var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         if (!handle.IsInvalid)
-        {
             return handle;
-        }
         
         handle.Close();
         handle.Dispose();
-        throw new Exception("Handle is invalid"); // TODO: temp
+        throw new InvalidHandleException();
     }
 
     public void Dispose()
@@ -95,3 +87,4 @@ public class RawVolume : IDisposable
         _volumeHandle.Dispose();
     }
 }
+public class InvalidHandleException() : Exception("File handle is invalid"); // TODO: i should put this somewhere

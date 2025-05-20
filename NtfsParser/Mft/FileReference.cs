@@ -2,6 +2,8 @@
 
 public record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
 {
+    public ulong MftOffset => GetMftOffset();
+    
     public static FileReference Parse(Span<byte> rawReference)
     {
         var reader = new SpanBinaryReader(rawReference);
@@ -12,7 +14,7 @@ public record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumb
         return new FileReference(segmentNumberLowPart, segmentNumberHighPart, sequenceNumber);
     }
     
-    public ulong GetAddress()
+    private ulong GetMftOffset()
     {
         ulong offset = SegmentNumberLowPart;
         offset |= (ulong)SegmentNumberHighPart << 32;
