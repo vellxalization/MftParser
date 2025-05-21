@@ -10,10 +10,10 @@ public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort Content
 
         var parsedEntries = new List<IndexEntry>();
         var parsedEntry = Parse(rawEntries);
-        while (!parsedEntry.Flags.HasFlag(IndexEntryFlags.ChildExists))
+        while (!parsedEntry.Flags.HasFlag(IndexEntryFlags.LastInList))
         {
             parsedEntries.Add(parsedEntry);
-            rawEntries = rawEntries[..parsedEntry.EntryLength];
+            rawEntries = rawEntries[parsedEntry.EntryLength..];
             parsedEntry = Parse(rawEntries);
         }
 
