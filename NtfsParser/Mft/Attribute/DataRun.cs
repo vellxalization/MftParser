@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
-public record struct DataRun(long Length, long Offset, bool IsSparse)
+public readonly record struct DataRun(long Length, long Offset, bool IsSparse)
 {
     public static DataRun[] ParseDataRuns(byte[] rawDataRuns)
     {

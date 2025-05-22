@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public record struct IndexRoot(IndexRootHeader Header, IndexNodeHeader NodeHeader, IndexEntry[] Entries)
+public readonly record struct IndexRoot(IndexRootHeader Header, IndexNodeHeader NodeHeader, IndexEntry[] Entries)
 {
-    public static IndexRoot CreateFromRawData(RawAttributeData rawData)
+    public static IndexRoot CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft;
 
-public record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
+public readonly record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
 {
     public ulong MftOffset => GetMftOffset();
     

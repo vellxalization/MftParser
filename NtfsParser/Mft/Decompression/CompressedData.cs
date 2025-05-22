@@ -2,7 +2,7 @@
 
 namespace NtfsParser.Mft.Decompression;
 
-public struct CompressedData
+public readonly struct CompressedData
 {
     public byte[] Data { get; init; }
     public CompressionUnit[] CompressionUnits { get; init; }
@@ -104,7 +104,7 @@ public struct CompressedData
     }
 }
 
-public struct CompressionUnit
+public readonly struct CompressionUnit
 {
     public static CompressionUnit SparseUnit => new() { Type = UnitType.Sparse, Range = default};
     public UnitType Type { get; init; }

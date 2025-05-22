@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct VolumeInformation(byte MajorVersion, byte MinorVersion, VolumeInformationFlags Flags)
+public readonly record struct VolumeInformation(byte MajorVersion, byte MinorVersion, VolumeInformationFlags Flags)
 {
-    public static VolumeInformation CreateFromRawData(RawAttributeData rawData)
+    public static VolumeInformation CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

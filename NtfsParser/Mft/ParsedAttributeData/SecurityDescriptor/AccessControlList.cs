@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
-public record struct AccessControlList(byte Revision, ushort AclSize, ushort AceCount, AccessControlEntry[] Entries)
+public readonly record struct AccessControlList(byte Revision, ushort AclSize, ushort AceCount, AccessControlEntry[] Entries)
 {
     public static AccessControlList Parse(Span<byte> rawAcl)
     {
@@ -18,7 +18,7 @@ public record struct AccessControlList(byte Revision, ushort AclSize, ushort Ace
     }
 }
 
-public record struct AccessControlEntry(AceType Type, AceFlags Flags, ushort Size, AccessMask AccessMask, SecurityId SecurityId)
+public readonly record struct AccessControlEntry(AceType Type, AceFlags Flags, ushort Size, AccessMask AccessMask, SecurityId SecurityId)
 {
     public static AccessControlEntry CreateFromStream(ref SpanBinaryReader reader)
     {

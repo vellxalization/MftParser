@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct EaInformation(ushort EaEntrySize, ushort NeedEaFlagsCount, uint EaDataSize)
+public readonly record struct EaInformation(ushort EaEntrySize, ushort NeedEaFlagsCount, uint EaDataSize)
 {
-    public static EaInformation CreateFromRawData(RawAttributeData rawData)
+    public static EaInformation CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

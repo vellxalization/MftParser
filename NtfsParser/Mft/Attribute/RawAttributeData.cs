@@ -5,7 +5,7 @@ using NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
 namespace NtfsParser.Mft.Attribute;
 
-public record struct RawAttributeData(byte[] Data)
+public readonly record struct RawAttributeData(byte[] Data)
 {
     public StandardInformation ToStandardInformation() => StandardInformation.CreateFromRawData(this);
     public AttributeList ToAttributeList() => AttributeList.CreateFromRawData(this);

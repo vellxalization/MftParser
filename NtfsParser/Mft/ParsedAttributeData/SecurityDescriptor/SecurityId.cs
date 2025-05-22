@@ -1,3 +1,3 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
-public record struct SecurityId(byte[] SId);
+public readonly record struct SecurityId(byte[] SId);

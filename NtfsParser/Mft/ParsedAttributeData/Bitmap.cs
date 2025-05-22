@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct Bitmap(byte[] Data)
+public readonly record struct Bitmap(byte[] Data)
 {
-    public static Bitmap CreateFromRawData(RawAttributeData rawData) => new(rawData.Data);
+    public static Bitmap CreateFromRawData(in RawAttributeData rawData) => new(rawData.Data);
 
     public bool IsSet(int bitIndex)
     {

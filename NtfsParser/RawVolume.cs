@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32.SafeHandles;
 using NtfsParser.Mft;
 using NtfsParser.Mft.Attribute;
-using NtfsParser.Mft.MftRecord;
 
 namespace NtfsParser;
 

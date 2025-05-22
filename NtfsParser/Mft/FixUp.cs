@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft;
 
-public record struct FixUp(byte[] Placeholder, byte[] Values)
+public readonly record struct FixUp(byte[] Placeholder, byte[] Values)
 {
     public static FixUp Parse(Span<byte> rawFixUp)
     {

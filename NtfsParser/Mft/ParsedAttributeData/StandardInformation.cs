@@ -2,11 +2,11 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct StandardInformation(FileTime FileCreated, FileTime FileAltered, FileTime MftChanged, FileTime FileRead, 
+public readonly record struct StandardInformation(FileTime FileCreated, FileTime FileAltered, FileTime MftChanged, FileTime FileRead, 
     DosPermissions DosPermissions, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 
     ulong QuotaCharged, ulong UpdateSequenceNumber)
 {
-    public static StandardInformation CreateFromRawData(RawAttributeData rawData)
+    public static StandardInformation CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

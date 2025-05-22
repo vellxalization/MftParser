@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.BootSector;
 
-public record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
+public readonly record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
 {
     public int SectorByteSize => Bpb.BytesPerSector;
     public int ClusterByteSize => Bpb.BytesPerSector * Bpb.SectorsPerCluster;

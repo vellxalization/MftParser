@@ -2,10 +2,10 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
-public record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset, 
+public readonly record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset, 
     ushort PrintNameSize, UnicodeName SubstituteName, UnicodeName PrintName)
 {
-    public static MountPoint CreateFromRawData(RawReparseData rawData)
+    public static MountPoint CreateFromRawData(in RawReparseData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

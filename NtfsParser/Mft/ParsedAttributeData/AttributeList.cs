@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct AttributeList(AttributeListEntry[] Entries)
+public readonly record struct AttributeList(AttributeListEntry[] Entries)
 {
-    public static AttributeList CreateFromRawData(RawAttributeData rawData)
+    public static AttributeList CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var entries = new List<AttributeListEntry>();

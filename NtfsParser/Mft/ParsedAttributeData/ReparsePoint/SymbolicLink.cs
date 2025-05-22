@@ -2,10 +2,10 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
-public record struct SymbolicLink(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset,
+public readonly record struct SymbolicLink(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset,
     ushort PrintNameSize, bool IsRelative, UnicodeName SubstituteName, UnicodeName PrintName)
 {
-    public static SymbolicLink CreateFromRawData(RawReparseData rawData)
+    public static SymbolicLink CreateFromRawData(in RawReparseData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

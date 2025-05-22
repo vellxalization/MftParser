@@ -1,12 +1,9 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
-public record struct AccessMask
+public readonly record struct AccessMask
 {
-    public AccessMask(int mask)
-    {
-        Rights = (AccessRights)mask;
-    }
-    
+    public AccessMask(int mask) => Rights = (AccessRights)mask;
+
     public AccessRights Rights { get; }
 
     public NonfolderAccessRights GetSpecificRightsAsNonFolder()

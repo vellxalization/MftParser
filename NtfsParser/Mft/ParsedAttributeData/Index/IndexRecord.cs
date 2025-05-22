@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public record struct IndexRecord(IndexRecordHeader Header, IndexNodeHeader IndexNodeHeader, FixUp FixUp,
+public readonly record struct IndexRecord(IndexRecordHeader Header, IndexNodeHeader IndexNodeHeader, FixUp FixUp,
     IndexEntry[] Entries)
 {
     public static IndexRecord Parse(Span<byte> rawRecord, int sectorSize)

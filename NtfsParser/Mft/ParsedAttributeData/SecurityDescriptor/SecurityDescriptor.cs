@@ -2,10 +2,10 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
-public record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessControlList Sacl, AccessControlList Dacl, 
+public readonly record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessControlList Sacl, AccessControlList Dacl, 
     SecurityId UserSid, SecurityId GroupSid)
 {
-    public static SecurityDescriptor CreateFromRawData(RawAttributeData rawData)
+    public static SecurityDescriptor CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

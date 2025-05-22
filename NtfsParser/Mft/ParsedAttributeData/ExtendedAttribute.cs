@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
+public readonly record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
 {
-    public static ExtendedAttribute CreateFromRawData(RawAttributeData rawData)
+    public static ExtendedAttribute CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var entries = new List<ExtendedAttributeEntry>();
@@ -19,7 +19,7 @@ public record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
     }
 }
 
-public record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte CharNameLength, short ValueSize,
+public readonly record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte CharNameLength, short ValueSize,
     AsciiName Name, byte[] Value)
 {
     public static ExtendedAttributeEntry Parse(Span<byte> rawEntry)

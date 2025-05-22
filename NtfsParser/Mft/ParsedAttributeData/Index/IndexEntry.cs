@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags,
+public readonly record struct IndexEntry(byte[] Bytes, ushort EntryLength, ushort ContentLength, IndexEntryFlags Flags,
     byte[] Content, ulong ChildVcn)
 {
     public static IndexEntry[] ParseEntries(Span<byte> rawEntries)

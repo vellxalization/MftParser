@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
-public record struct Resident(uint Size, ushort Offset, byte IndexedFlag)
+public readonly record struct Resident(uint Size, ushort Offset, byte IndexedFlag)
 {
     public static Resident Parse(Span<byte> rawResident)
     {

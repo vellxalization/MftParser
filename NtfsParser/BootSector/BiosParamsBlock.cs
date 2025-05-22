@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.BootSector;
 
-public record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerCluster, byte MediaDescriptor, 
+public readonly record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerCluster, byte MediaDescriptor, 
     ushort SectorsPerTrack, ushort NumberOfHeads, uint HiddenSectors)
 {
     public static BiosParamsBlock Parse(Span<byte> rawBpb)

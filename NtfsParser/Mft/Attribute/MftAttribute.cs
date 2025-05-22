@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
-public record struct MftAttribute(MftAttributeHeader Header, UnicodeName Name, byte[] Value)
+public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName Name, byte[] Value)
 {
     public static MftAttribute[] ParseAttributes(Span<byte> rawAttributes)
     {
@@ -22,7 +22,7 @@ public record struct MftAttribute(MftAttributeHeader Header, UnicodeName Name, b
     private static MftAttribute Parse(Span<byte> rawAttribute)
     {
         var reader = new SpanBinaryReader(rawAttribute);
-        var header = MftAttributeHeader.Parse(ref reader);
+        var header = AttributeHeader.Parse(ref reader);
         if (header.Type == AttributeType.EndOfAttributeList)
             return new MftAttribute(header, UnicodeName.Empty, []);
         
@@ -67,7 +67,7 @@ public record struct MftAttribute(MftAttributeHeader Header, UnicodeName Name, b
     public RawAttributeData GetAttributeData(VolumeReader volumeReader)
     {
         var strategy = PickBestStrategy();
-        return strategy.GetDataFromDataRuns(volumeReader, ref this);
+        return strategy.GetDataFromDataRuns(volumeReader, in this);
     }
 
     private IDataReadStrategy PickBestStrategy()
@@ -83,4 +83,62 @@ public record struct MftAttribute(MftAttributeHeader Header, UnicodeName Name, b
 
         return new NonresidentNoSparseStrategy();
     }
+}
+
+public readonly record struct AttributeHeader(AttributeType Type, uint Size, bool IsNonresident, byte NameSize,
+    ushort NameOffset, AttributeHeaderFlags DataFlags, ushort AttributeId, Resident Resident, Nonresident Nonresident)
+{
+    public static AttributeHeader Parse(ref SpanBinaryReader reader)
+    {
+        var type = reader.ReadUInt32();
+        if (type == 0xffffffff)
+            return new AttributeHeader(AttributeType.EndOfAttributeList, 0, false, 0, 0, 0, 0, default, default);
+
+        var size = reader.ReadUInt32();
+        var nonresidentFlag = reader.ReadByte();
+        var nameSize = reader.ReadByte();
+        var nameOffset = reader.ReadUInt16();
+        var dataFlags = reader.ReadUInt16();
+        var attributeId = reader.ReadUInt16();
+        if (nonresidentFlag == 0)
+        {
+            var rawResident = reader.ReadBytes(8);
+            var resident = Resident.Parse(rawResident);
+            return new AttributeHeader((AttributeType)type, size, false, nameSize, nameOffset,
+                (AttributeHeaderFlags)dataFlags, attributeId, resident, default);
+        }
+
+        var rawNonresident = reader.ReadBytes(56);
+        var nonresident = Nonresident.Parse(rawNonresident);
+        return new AttributeHeader((AttributeType)type, size, true, nameSize, nameOffset,
+            (AttributeHeaderFlags)dataFlags, attributeId, default, nonresident);
+    }
+}
+
+[Flags]
+public enum AttributeHeaderFlags
+{
+    IsCompressed = 0x0001,
+    IsEncrypted = 0x4000,
+    IsSparse = 0x8000
+}
+
+public enum AttributeType
+{
+    StandardInformation = 0x10,
+    AttributeList = 0x20,
+    FileName = 0x30,
+    ObjectId = 0x40,
+    SecurityDescriptor = 0x50,
+    VolumeName = 0x60,
+    VolumeInformation = 0x70,
+    Data = 0x80,
+    IndexRoot = 0x90,
+    IndexAllocation = 0xA0,
+    Bitmap = 0xB0,
+    ReparsePoint = 0xC0,
+    EaInformation = 0xD0,
+    ExtendedAttribute = 0xE0,
+    LoggedUtilityStream = 0x100,
+    EndOfAttributeList = 0xFF
 }

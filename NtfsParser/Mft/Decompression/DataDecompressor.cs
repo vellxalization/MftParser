@@ -2,19 +2,17 @@
 
 public static class DataDecompressor
 {
-    public static byte[] Decompress(CompressedData data, int decompressionBufferSize)
+    public static byte[] Decompress(in CompressedData data, int decompressionBufferSize)
     {
         var compressedSpan = data.Data.AsSpan();
         var decompressionBuffer = new DecompressionBuffer(decompressionBufferSize);
         foreach (var unit in data.CompressionUnits)
-        {
-            ProcessUnit(decompressionBuffer, compressedSpan, unit, data.CompressionUnitSizeCluster, data.ClusterSizeByte);
-        }
+            ProcessUnit(decompressionBuffer, compressedSpan, in unit, data.CompressionUnitSizeCluster, data.ClusterSizeByte);
         
         return decompressionBuffer.Buffer;
     }
 
-    private static void ProcessUnit(DecompressionBuffer decompressionBuffer, Span<byte> data, CompressionUnit unit, 
+    private static void ProcessUnit(DecompressionBuffer decompressionBuffer, Span<byte> data, in CompressionUnit unit, 
         int compressionUnitSizeCluster, int clusterSizeByte)
     {
         switch (unit.Type)
@@ -86,7 +84,7 @@ public static class DataDecompressor
                     var rawBackreference = compressedChunk.Slice(pointer, 2);
                     var backreference = new Backreference(rawBackreference, buffer.BlockPointer);
                     pointer += 2;
-                    buffer.InsertFromBackreference(backreference);
+                    buffer.InsertFromBackreference(in backreference);
                 }
 
                 bitMask <<= 1;
@@ -148,7 +146,7 @@ public static class DataDecompressor
         /// <summary>
         /// Copy previously inserted bytes using a backreference
         /// </summary>
-        public void InsertFromBackreference(Backreference backreference)
+        public void InsertFromBackreference(in Backreference backreference)
         {
             var span = Buffer.AsSpan();
             if (backreference.Size <= backreference.Offset)

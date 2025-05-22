@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
-public record struct ReparsePoint(ReparseTag ReparseTag, ushort DataSize, RawReparseData Data, Guid ThirdPartyGuid)
+public readonly record struct ReparsePoint(ReparseTag ReparseTag, ushort DataSize, RawReparseData Data, Guid ThirdPartyGuid)
 {
-    public static ReparsePoint CreateFromRawData(RawAttributeData rawData)
+    public static ReparsePoint CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

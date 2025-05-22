@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
-public record struct ReparseTag(uint Value)
+public readonly record struct ReparseTag(uint Value)
 {
     public ReparseFlags GetFlags() => (ReparseFlags)(Value & 0b_1111_0000_00000000_00000000_00000000);
     public PredefinedTags AsPredefinedTag() => (PredefinedTags)Value;

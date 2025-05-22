@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct ObjectId(Guid Id, Guid BirthVolumeId, Guid BirthObjectId, Guid DomainId)
+public readonly record struct ObjectId(Guid Id, Guid BirthVolumeId, Guid BirthObjectId, Guid DomainId)
 {
-    public static ObjectId CreateFromRawData(RawAttributeData rawData)
+    public static ObjectId CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

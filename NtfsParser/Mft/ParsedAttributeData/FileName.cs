@@ -2,11 +2,11 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
-public record struct FileName(FileReference ReferenceToParentDirectory, FileTime FileCreated, FileTime FileAltered,
+public readonly record struct FileName(FileReference ReferenceToParentDirectory, FileTime FileCreated, FileTime FileAltered,
     FileTime MftChanged, FileTime FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,
     byte FilenameLength, byte FilenameNamespace, UnicodeName Name)
 {
-    public static FileName CreateFromRawData(RawAttributeData rawData)
+    public static FileName CreateFromRawData(in RawAttributeData rawData)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

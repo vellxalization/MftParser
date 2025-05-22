@@ -2,9 +2,9 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public record struct IndexAllocation(IndexRecord[] Records)
+public readonly record struct IndexAllocation(IndexRecord[] Records)
 {
-    public static IndexAllocation CreateFromRawData(RawAttributeData rawData, int indexRecordSize, int sectorSize)
+    public static IndexAllocation CreateFromRawData(in RawAttributeData rawData, int indexRecordSize, int sectorSize)
     {
         var data = rawData.Data.AsSpan();
         var reader = new SpanBinaryReader(data);

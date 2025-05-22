@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
-public record struct Nonresident(ulong LowestVcn, ulong HighestVcn, ushort DataRunsOffset, ushort CompressionUnitSize, 
+public readonly record struct Nonresident(ulong LowestVcn, ulong HighestVcn, ushort DataRunsOffset, ushort CompressionUnitSize, 
     ulong AllocatedSizeByte, ulong ActualSizeByte, ulong InitializedDataSizeByte, ulong AllocatedClustersSizeByte)
 {
     public static Nonresident Parse(Span<byte> rawNonresident)

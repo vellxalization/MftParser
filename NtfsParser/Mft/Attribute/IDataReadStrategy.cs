@@ -6,18 +6,18 @@ namespace NtfsParser;
 
 public interface IDataReadStrategy
 {
-    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute);
+    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, in MftAttribute attribute);
 }
 
 public class ResidentStrategy : IDataReadStrategy
 {
-    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute) 
+    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, in MftAttribute attribute) 
         => new(attribute.Value);
 }
 
 public class NonresidentNoSparseStrategy : IDataReadStrategy
 {
-    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute)
+    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, in MftAttribute attribute)
     {
         if (attribute.Header.Nonresident.ActualSizeByte == 0)
             return new RawAttributeData([]);
@@ -41,7 +41,7 @@ public class NonresidentNoSparseStrategy : IDataReadStrategy
 
 public class NonresidentSparseStrategy : IDataReadStrategy
 {
-    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute)
+    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, in MftAttribute attribute)
     {
         if (attribute.Header.Nonresident.ActualSizeByte == 0)
             return new RawAttributeData([]);
@@ -71,7 +71,7 @@ public class NonresidentSparseStrategy : IDataReadStrategy
 
 public class NonresidentCompressedStrategy : IDataReadStrategy
 {
-    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, ref MftAttribute attribute)
+    public RawAttributeData GetDataFromDataRuns(VolumeReader reader, in MftAttribute attribute)
     {
         if (attribute.Header.Nonresident.ActualSizeByte == 0)
             return new RawAttributeData([]);

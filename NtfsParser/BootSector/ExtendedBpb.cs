@@ -1,6 +1,6 @@
 ﻿namespace NtfsParser.BootSector;
 
-public record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
+public readonly record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
     sbyte ClustersPerMftRecord, sbyte ClustersPerIndexRecord, long VolumeSerialNumber)
 {
     public static ExtendedBpb Parse(Span<byte> rawExBpb)

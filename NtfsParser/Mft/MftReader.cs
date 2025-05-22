@@ -1,6 +1,4 @@
-﻿using NtfsParser.Mft.MftRecord;
-
-namespace NtfsParser.Mft;
+﻿namespace NtfsParser.Mft;
 
 public partial class MasterFileTable
 {
@@ -53,19 +51,19 @@ public partial class MasterFileTable
             throw new ArgumentException("Provided index is out of MFT range."); // in theory, this shouldn't ever fire
         }
         
-        public MftRecord.MftRecord ReadMftRecord()
+        public MftRecord ReadMftRecord()
         {
             if (!CanRead)
                 throw new EndOfMftException();
             
             var buffer = new Span<byte>(new byte[_mft.RecordByteSize]);
             _mft._volumeStream.ReadExactly(buffer);
-            var parsed = MftRecord.MftRecord.Parse(buffer, _mft.SectorByteSize);
+            var parsed = MftRecord.Parse(buffer, _mft.SectorByteSize);
             AdvanceForward();
             return parsed;
         }
  
-        public IEnumerable<MftRecord.MftRecord> StartReadingMft(MftIteratorOptions? options = null)
+        public IEnumerable<MftRecord> StartReadingMft(MftIteratorOptions? options = null)
         {
             var ignoreEmpty = options?.IgnoreEmpty ?? false;
             var ignoreUnused = options?.IgnoreUnused ?? false;
@@ -74,7 +72,7 @@ public partial class MasterFileTable
             {
                 var record = ReadMftRecord();
                 var header = record.RecordHeader;
-                if (ignoreEmpty && header.Header.Signature == MftSignature.Empty 
+                if (ignoreEmpty && header.MultiSectorHeader.Signature == MftSignature.Empty 
                     || ignoreUnused && (header.EntryFlags & MftRecordHeaderFlags.InUse) == 0)
                     continue;
 
