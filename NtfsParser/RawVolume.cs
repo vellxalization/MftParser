@@ -9,7 +9,7 @@ public class RawVolume : IDisposable
     public BootSector.BootSector BootSector { get; private set; }
     public MasterFileTable MasterFileTable { get; private set; }
     public MasterFileTable.MftReader MftReader => MasterFileTable.Reader;
-    public VolumeReader VolumeReader { get; }
+    public VolumeDataReader VolumeReader { get; }
     
     private SafeFileHandle _volumeHandle;
 
@@ -24,7 +24,7 @@ public class RawVolume : IDisposable
         MasterFileTable = mft;
     }
 
-    private VolumeReader CreateVolumeReader()
+    private VolumeDataReader CreateVolumeReader()
     {
         // this method will be called first in ctor so we also use it to create boot sector since we need
         // a filestream
@@ -32,7 +32,7 @@ public class RawVolume : IDisposable
         var bootSector = ReadBootSector(volumeStream);
         BootSector = bootSector;
         
-        var volumeReader = new VolumeReader(volumeStream, BootSector.SectorByteSize, 
+        var volumeReader = new VolumeDataReader(volumeStream, BootSector.SectorByteSize, 
             BootSector.ClusterByteSize, BootSector.IndexRecordByteSize);
         
         return volumeReader;
@@ -81,9 +81,6 @@ public class RawVolume : IDisposable
         throw new InvalidHandleException();
     }
 
-    public void Dispose()
-    {
-        _volumeHandle.Dispose();
-    }
+    public void Dispose() => _volumeHandle.Dispose();
 }
 public class InvalidHandleException() : Exception("File handle is invalid"); // TODO: i should put this somewhere

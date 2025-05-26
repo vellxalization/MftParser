@@ -97,6 +97,5 @@ public partial class MasterFileTable
         }
     }
 
-    public record MftIteratorOptions(bool IgnoreEmpty = false, bool IgnoreUnused = false, int StartFrom = 0);
     public class EndOfMftException() : Exception("Tried to read past MFT");
 }

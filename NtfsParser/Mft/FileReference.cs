@@ -2,7 +2,7 @@
 
 public readonly record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
 {
-    public ulong MftOffset => GetMftOffset();
+    public ulong MftIndex => GetMftOffset();
     
     public static FileReference Parse(Span<byte> rawReference)
     {

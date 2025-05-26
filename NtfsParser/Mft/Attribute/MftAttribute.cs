@@ -64,7 +64,7 @@ public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName N
         return reader.Position - 1 - startIndex;
     }
     
-    public RawAttributeData GetAttributeData(VolumeReader volumeReader)
+    public RawAttributeData GetAttributeData(VolumeDataReader volumeReader)
     {
         var strategy = PickBestStrategy();
         return strategy.GetDataFromDataRuns(volumeReader, in this);

@@ -2,14 +2,12 @@
 
 namespace NtfsParser;
 
-public ref struct SpanBinaryReader
+public ref struct SpanBinaryReader(Span<byte> span)
 {
     public int Position { get; set; } = 0;
     public int Length => InternalSpan.Length;
-    public Span<byte> InternalSpan { get; }
+    public Span<byte> InternalSpan { get; } = span;
 
-    public SpanBinaryReader(Span<byte> span) => InternalSpan = span;
-    
     public void Skip(int bytes) => Position += bytes;
     
     public byte ReadByte() => InternalSpan[Position++];
