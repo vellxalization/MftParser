@@ -28,4 +28,15 @@ public readonly record struct FixUp(byte[] Placeholder, byte[] Values)
             entry[lastBytesOffset + 1] = Values[valuesOffset + 1];
         }
     }
+    
+    public void ReapplyFixUp(Span<byte> entry, int sectorSize)
+    {
+        var fixUpLength = Values.Length / 2;
+        for (int i = 0; i < fixUpLength; ++i)
+        {
+            var lastBytesOffset = (i + 1) * sectorSize - 2;
+            entry[lastBytesOffset] = Placeholder[0];
+            entry[lastBytesOffset + 1] = Placeholder[1];
+        }
+    }
 }

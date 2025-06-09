@@ -1,25 +1,23 @@
-﻿using NtfsParser.Mft.Attribute;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Win32.SafeHandles;
+using NtfsParser.Mft.Attribute;
 
 namespace NtfsParser.Mft;
 
-public partial class MasterFileTable(FileStream volumeStream, DataRun[] mftDataRuns, int sectorByteSize, int clusterByteSize, int sizeInBytes, int recordByteSize)
+public readonly struct MasterFileTable
 {
-    public MftReader Reader => _reader ?? CreateReader();
-    private MftReader? _reader;
-
-    public int SizeInRecords { get; } = sizeInBytes / recordByteSize;
-    public int SizeInBytes { get; } = sizeInBytes;
-    public int RecordByteSize { get; } = recordByteSize;
-    public int SectorByteSize { get; } = sectorByteSize;
-    public int ClusterByteSize { get; } = clusterByteSize;
-
-    private readonly FileStream _volumeStream = volumeStream;
-    private readonly DataRun[] _mftDataRuns = mftDataRuns;
-
-    private MftReader CreateReader()
+    public MftReader Reader { get; }
+    public int RecordByteSize { get; }
+    public int SectorByteSize { get; }
+    public int ClusterByteSize { get; }
+    public ReadOnlyCollection<DataRun> MftDataRuns { get; }
+    
+    public MasterFileTable(int recordByteSize, int sectorByteSize, int clusterByteSize, SafeFileHandle handle, DataRun[] mftDataRuns)
     {
-        var reader = new MftReader(this);
-        _reader = reader;
-        return _reader;
+        SectorByteSize = sectorByteSize;
+        ClusterByteSize = clusterByteSize;
+        RecordByteSize = recordByteSize;
+        MftDataRuns = new(mftDataRuns);
+        Reader = new MftReader(this, handle);
     }
 }

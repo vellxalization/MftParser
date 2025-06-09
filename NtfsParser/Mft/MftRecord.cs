@@ -16,6 +16,8 @@ public readonly record struct MftRecord(MftRecordHeader RecordHeader, MftAttribu
         var rawAttributes = reader.ReadBytes((int)header.UsedEntrySize - reader.Position);
         var attributes = MftAttribute.ParseAttributes(rawAttributes);
         // rest is unused bytes
+        
+        header.FixUp.ReapplyFixUp(rawMftRecord, sectorSize);
         return new MftRecord(header, attributes);
     }
 }

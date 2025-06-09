@@ -6,46 +6,36 @@ namespace NtfsParser;
 
 public class RawVolume : IDisposable
 {
-    public BootSector.BootSector BootSector { get; private set; }
-    public MasterFileTable MasterFileTable { get; private set; }
-    public MasterFileTable.MftReader MftReader => MasterFileTable.Reader;
+    public BootSector.BootSector BootSector { get; }
+    public MasterFileTable MasterFileTable { get; }
+    public MftReader MftReader => MasterFileTable.Reader;
     public VolumeDataReader VolumeReader { get; }
     
-    private SafeFileHandle _volumeHandle;
+    public readonly SafeFileHandle VolumeHandle;
 
     public RawVolume(char volumeLetter)
     {
         var fileHandle = OpenFile($@"\\.\{volumeLetter}:");
-        _volumeHandle = fileHandle;
-
-        var volumeReader = CreateVolumeReader();
-        VolumeReader = volumeReader;
-        var mft = CreateMft();
-        MasterFileTable = mft;
-    }
-
-    private VolumeDataReader CreateVolumeReader()
-    {
-        // this method will be called first in ctor so we also use it to create boot sector since we need
-        // a filestream
-        var volumeStream = new FileStream(_volumeHandle, FileAccess.Read);
-        var bootSector = ReadBootSector(volumeStream);
+        VolumeHandle = fileHandle;
+        var dataReaderStream = new FileStream(VolumeHandle, FileAccess.Read); // will be reused in data reader
+        
+        var bootSector = ReadBootSector(dataReaderStream);
         BootSector = bootSector;
         
-        var volumeReader = new VolumeDataReader(volumeStream, BootSector.SectorByteSize, 
-            BootSector.ClusterByteSize, BootSector.IndexRecordByteSize);
-        
-        return volumeReader;
+        var mft = CreateMft(dataReaderStream);
+        MasterFileTable = mft;
+
+        dataReaderStream.Position = 0;
+        VolumeReader = new VolumeDataReader(dataReaderStream, BootSector.SectorByteSize, BootSector.ClusterByteSize, 
+            BootSector.IndexRecordByteSize);
     }
     
-    private MasterFileTable CreateMft()
+    private MasterFileTable CreateMft(FileStream volumeStream)
     {
-        var volumeStream = new FileStream(_volumeHandle, FileAccess.Read, BootSector.MftRecordByteSize * 8);
         var mftFile = ReadMftFile(volumeStream);
         var dataAttribute = mftFile.Attributes.First(attribute => attribute.Header.Type == AttributeType.Data);
         var dataRuns = DataRun.ParseDataRuns(dataAttribute.Value);
-        var mft = new MasterFileTable(volumeStream, dataRuns, BootSector.SectorByteSize, BootSector.ClusterByteSize,
-            (int)dataAttribute.Header.Nonresident.AllocatedSizeByte, BootSector.MftRecordByteSize);
+        var mft = new MasterFileTable(BootSector.MftRecordByteSize, BootSector.SectorByteSize, BootSector.ClusterByteSize, VolumeHandle, dataRuns);
         
         return mft;
     }
@@ -81,6 +71,9 @@ public class RawVolume : IDisposable
         throw new InvalidHandleException();
     }
 
-    public void Dispose() => _volumeHandle.Dispose();
+    public void Dispose()
+    {
+        VolumeHandle.Dispose();
+    }
 }
 public class InvalidHandleException() : Exception("File handle is invalid"); // TODO: i should put this somewhere

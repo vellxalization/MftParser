@@ -22,8 +22,9 @@ public readonly record struct IndexRecord(IndexRecordHeader Header, IndexNodeHea
         var entriesLength = offset + (int)nodeHeader.EntryListEndOffset - reader.Position;
         var rawEntries = reader.ReadBytes(entriesLength);
         var entries = IndexEntry.ParseEntries(rawEntries);
-
-        return new IndexRecord(header, nodeHeader, fixUp, entries.ToArray());
+        
+        fixUp.ReapplyFixUp(rawRecord, sectorSize);
+        return new IndexRecord(header, nodeHeader, fixUp, entries);
     }
 }
 
