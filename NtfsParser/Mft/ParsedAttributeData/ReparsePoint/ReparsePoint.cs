@@ -2,6 +2,14 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
+/// <summary>
+/// An attribute that represents reparse file
+/// </summary>
+/// <param name="ReparseTag">Tag</param>
+/// <param name="DataSize">Size of the content</param>
+/// <param name="Data">Content. Different reparse point types will have different content</param>
+/// <param name="ThirdPartyGuid">GUID for the non-Microsoft reparse points.
+/// Should only be present if the tag doesn't contain "IsMicrosoft" flag</param>
 public readonly record struct ReparsePoint(ReparseTag ReparseTag, ushort DataSize, RawReparseData Data, Guid ThirdPartyGuid)
 {
     public static ReparsePoint CreateFromRawData(in RawAttributeData rawData)
@@ -12,7 +20,7 @@ public readonly record struct ReparsePoint(ReparseTag ReparseTag, ushort DataSiz
         var reparseDataSize = reader.ReadUInt16();
         reader.Skip(2); // unused
         Guid thirdPartyGuid = Guid.Empty;
-        if (!reparseTag.GetFlags().HasFlag(ReparseFlags.IsMicrosoft))
+        if ((reparseTag.GetFlags() & ReparseFlags.IsMicrosoft) == 0)
         {
             var guidBytes = reader.ReadBytes(16);
             thirdPartyGuid = new Guid(guidBytes);

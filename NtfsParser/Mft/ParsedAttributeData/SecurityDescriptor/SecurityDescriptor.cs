@@ -2,7 +2,16 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
-public readonly record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessControlList Sacl, AccessControlList Dacl, 
+/// <summary>
+/// An attribute used to control access to files and folders. Most descriptors are stored in the $Secure meta file,
+/// however some of the files will still have this attribute 
+/// </summary>
+/// <param name="Header">Descriptor's header</param>
+/// <param name="SystemList">Access list used to log access</param>
+/// <param name="DiscretionaryList">Access list used to control access</param>
+/// <param name="UserSid">User SID</param>
+/// <param name="GroupSid">Group SID</param>
+public readonly record struct SecurityDescriptor(SecurityDescriptorHeader Header, AccessControlList SystemList, AccessControlList DiscretionaryList, 
     SecurityId UserSid, SecurityId GroupSid)
 {
     public static SecurityDescriptor CreateFromRawData(in RawAttributeData rawData)
@@ -52,12 +61,22 @@ public enum SecurityDescriptorControlFlags : ushort
     DaclAutoInheritReq = 0x0100,
     SaclAutoInheritReq = 0x0200,
     DaclAutoInherited = 0x0400,
+    SaclAutoInherited = 0x0800,
     DaclProtected = 0x1000,
     SaclProtected = 0x2000,
     RmControlValid = 0x4000,
-    SelfRelative = 0x8000
+    SelfRelative = 0x8000,
 }
 
+/// <summary>
+/// Descriptor's header that contains information about the layout
+/// </summary>
+/// <param name="Revision">Revision. Currently, is set to 2</param>
+/// <param name="ControlFlags">Flags</param>
+/// <param name="OffsetToUserSid">Offset to the user's security ID within the raw descriptor</param>
+/// <param name="OffsetToGroupSid">Offset to the group's security ID within the raw descriptor</param>
+/// <param name="OffsetToSacl">Offset to the system access list within the raw descriptor</param>
+/// <param name="OffsetToDacl">Offset to the discretionary access list within the raw descriptor</param>
 public record struct SecurityDescriptorHeader(byte Revision, SecurityDescriptorControlFlags ControlFlags, uint OffsetToUserSid,
     uint OffsetToGroupSid, uint OffsetToSacl, uint OffsetToDacl)
 {

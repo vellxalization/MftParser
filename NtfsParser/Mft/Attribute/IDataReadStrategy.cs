@@ -1,8 +1,6 @@
-﻿using NtfsParser.Mft;
-using NtfsParser.Mft.Attribute;
-using NtfsParser.Mft.Decompression;
+﻿using NtfsParser.Mft.Decompression;
 
-namespace NtfsParser;
+namespace NtfsParser.Mft.Attribute;
 
 public interface IDataReadStrategy
 {
@@ -97,6 +95,6 @@ public class NonresidentCompressedStrategy : IDataReadStrategy
         var compressedData = new CompressedData(data, dataRuns, compressionUnitSizeCluster, clusterSizeByte);
         var decompressedData = DataDecompressor.Decompress(compressedData, (int)attribute.Header.Nonresident.AllocatedSizeByte);
         
-        return new RawAttributeData(decompressedData[..(int)attribute.Header.Nonresident.InitializedDataSizeByte]);
+        return new RawAttributeData(decompressedData[..(int)attribute.Header.Nonresident.ValidDataSizeByte]);
     }
 }

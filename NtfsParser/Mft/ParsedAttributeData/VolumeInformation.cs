@@ -2,6 +2,12 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
+/// <summary>
+/// An attribute that contains information about volume. Used only by $Volume meta file
+/// </summary>
+/// <param name="MajorVersion">Major version of NTFS. Starting from Windows XP, we're at the version 3.1, so this field is set to 3</param>
+/// <param name="MinorVersion">Minor version of NTFS. Starting from Windows XP, we're at the version 3.1, so this field is set to 1</param>
+/// <param name="Flags">Volume's flags</param>
 public readonly record struct VolumeInformation(byte MajorVersion, byte MinorVersion, VolumeInformationFlags Flags)
 {
     public static VolumeInformation CreateFromRawData(in RawAttributeData rawData)

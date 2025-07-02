@@ -1,5 +1,14 @@
 ﻿namespace NtfsParser.BootSector;
 
+/// <summary>
+/// Structure that describes physical layout of the volume
+/// </summary>
+/// <param name="BytesPerSector">Amount of bytes in a single sector. Sector is the smallest unit of storage. Most of the disks have this value set to 512 bytes</param>
+/// <param name="SectorsPerCluster">Amount of cluster in a single cluster. Cluster is the smallest unit of storage that can be allocated on the disk. Most of the disks have this value set to 8 (4096 bytes per sector)</param>
+/// <param name="MediaDescriptor">Information about the media used. Mostly legacy. Value of 0xF8 means a hard drive, 0xF0 - high-density 3.5-inch floppy disk</param>
+/// <param name="SectorsPerTrack">Number of disk sectors per drive track. Relevant for INT 13h</param>
+/// <param name="NumberOfHeads">Number of heads of a disk. Relevant for INT 13h</param>
+/// <param name="HiddenSectors">Number of sectors before boot sector. Generally relevant for INT 13h</param>
 public readonly record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerCluster, byte MediaDescriptor, 
     ushort SectorsPerTrack, ushort NumberOfHeads, uint HiddenSectors)
 {

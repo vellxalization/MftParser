@@ -1,5 +1,11 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
+/// <summary>
+/// Structure that represents a single record's attribute
+/// </summary>
+/// <param name="Header">Attribute's header</param>
+/// <param name="Name">Attribute's name. For most of the attributes will be empty. Index ones will have "$I30" name</param>
+/// <param name="Value">Attribute's value. For resident attributes, this is the content; for nonresident - data runs</param>
 public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName Name, byte[] Value)
 {
     public static MftAttribute[] ParseAttributes(Span<byte> rawAttributes)
@@ -42,8 +48,8 @@ public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName N
         }
         else
         {
-            reader.Position = header.Resident.Offset;
-            data = reader.ReadBytes((int)header.Resident.Size);
+            reader.Position = header.Resident.ContentOffset;
+            data = reader.ReadBytes((int)header.Resident.ContentSize);
         }
         
         return new MftAttribute(header, new UnicodeName(name.ToArray()), data.ToArray());
@@ -64,6 +70,12 @@ public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName N
         return reader.Position - 1 - startIndex;
     }
     
+    /// <summary>
+    /// Gets the data of the attribute.
+    /// Will handle the sparse and compressed attributes by adding zeroes and uncompressing them, respectively
+    /// </summary>
+    /// <param name="volumeReader">An instance of volume data reader to read data from the disk in case the attribute is nonresident</param>
+    /// <returns>Ready to consume data</returns>
     public RawAttributeData GetAttributeData(VolumeDataReader volumeReader)
     {
         var strategy = PickBestStrategy();
@@ -85,6 +97,18 @@ public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName N
     }
 }
 
+/// <summary>
+/// Attribute's header
+/// </summary>
+/// <param name="Type">Type of the attribute, as defined in $AttrDef meta file</param>
+/// <param name="Size">Size of the attribute, including the header and content</param>
+/// <param name="IsNonresident">Is the attribute nonresident</param>
+/// <param name="NameSize">Size of the attribute's name in Unicode characters</param>
+/// <param name="NameOffset">Offset to the start of the attribute's name</param>
+/// <param name="DataFlags">Attribute's flags</param>
+/// <param name="AttributeId">Attribute's ID</param>
+/// <param name="Resident">Contains data about resident content of the attribute. If the attribute is nonrsident, set to default</param>
+/// <param name="Nonresident">Contains data about nonresident content of the attribute. If the attribute is resident, set to default</param>
 public readonly record struct AttributeHeader(AttributeType Type, uint Size, bool IsNonresident, byte NameSize,
     ushort NameOffset, AttributeHeaderFlags DataFlags, ushort AttributeId, Resident Resident, Nonresident Nonresident)
 {
@@ -115,14 +139,29 @@ public readonly record struct AttributeHeader(AttributeType Type, uint Size, boo
     }
 }
 
+/// <summary>
+/// Attribute's flags
+/// </summary>
 [Flags]
 public enum AttributeHeaderFlags
 {
+    /// <summary>
+    /// Set if the attribute's data is compressed. Should be only used in nonresident $Data attributes
+    /// </summary>
     IsCompressed = 0x0001,
+    /// <summary>
+    /// Set if the attribute's data is encrypted
+    /// </summary>
     IsEncrypted = 0x4000,
+    /// <summary>
+    /// Set if the attribute's data contains sparse blocks
+    /// </summary>
     IsSparse = 0x8000
 }
 
+/// <summary>
+/// Attribute's type as defined in $AttrDef meta file. Currently, we use NTFS 3.1 types
+/// </summary>
 public enum AttributeType
 {
     StandardInformation = 0x10,

@@ -1,83 +1,83 @@
-﻿namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
+﻿using System.Text;
 
-public readonly record struct AccessMask
+namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
+
+/// <summary>
+/// Access mask used by access lists
+/// </summary>
+/// <param name="Value">Raw 32-bit value</param>
+public readonly record struct AccessMask(uint Value)
 {
-    public AccessMask(int mask) => Rights = (AccessRights)mask;
+    private const uint GenericRightsMask = 0xF0000000;
+    /// <summary>
+    /// Returns most significant bits 0-3 as generic rights enum
+    /// </summary>
+    public GenericAccessRights GenericRights => (GenericAccessRights)((Value & GenericRightsMask) >> 28);
 
-    public AccessRights Rights { get; }
+    private const uint MaximumAllowedMask = 1 << 26;
+    
+    /// <summary>
+    /// Returns boolean value signaling whether then 6th most significant bit is set
+    /// </summary>
+    public bool MaximumAllowed => (Value & MaximumAllowedMask) != 0;
+    
+    private const uint AccessSystemSecurityMask = 1 << 25;
+    /// <summary>
+    /// Returns boolean value signaling whether then 7th most significant bit is set
+    /// </summary>
+    public bool AccessSystemSecurity => (Value & AccessSystemSecurityMask) != 0;
+    
+    private const uint StandardAccessMask = 0x1F0000;
+    /// <summary>
+    /// Returns most significant bits 11-15 as standard rights enum
+    /// </summary>
+    public StandardAccessRights StandardRights => (StandardAccessRights)((Value & StandardAccessMask) >> 16);
+    
+    private const ushort SpecificRightsMask = 0xFFFF;
+    /// <summary>
+    /// Returns most significant bits 16-31 as ushort value. Since the meaning of these flags are object-specific, we don't format them
+    /// </summary>
+    public ushort SpecificRights => (ushort)(Value & SpecificRightsMask);
 
-    public NonfolderAccessRights GetSpecificRightsAsNonFolder()
-    {
-        var value = (int)Rights & 0b_11111111_11111111;
-        return (NonfolderAccessRights)value;
-    }
-
-    public FolderAccessRights GetSpecificRightsAsFolder()
-    {
-        var value = (int)Rights & 0b_11111111_11111111;
-        return (FolderAccessRights)value;
-    }
-
-    public MandatoryLabelAccessRights GetSpecificRightsAsMandatoryLabel()
-    {
-        var value = (int)Rights & 0b_11111111_11111111;
-        return (MandatoryLabelAccessRights)value;
-    }
+    // public override string ToString()
+    // {
+    //     var sb = new StringBuilder();
+    //     sb.Append($"{((Value & GenericRightsMask) >> 28):b4}");
+    //     sb.Append('_');
+    //     sb.Append("RR");
+    //     sb.Append('_');
+    //     sb.Append(MaximumAllowed ? '1' : '0');
+    //     sb.Append('_');
+    //     sb.Append(AccessSystemSecurity ? '1' : '0');
+    //     sb.Append('_');
+    //     sb.Append("RRR");
+    //     sb.Append('_');
+    //     sb.Append($"{((Value & StandardAccessMask) >> 16):B5}");
+    //     sb.Append('_');
+    //     sb.Append($"{SpecificRights:B16}");
+    //     sb.Append(Environment.NewLine);
+    //     sb.Append($"Generic: {GenericRights}");
+    //     sb.Append(Environment.NewLine);
+    //     sb.Append($"Standard: {StandardRights}");
+    //     return sb.ToString();
+    // }
 }
 
 [Flags]
-public enum AccessRights
+public enum GenericAccessRights : sbyte
 {
-    Delete = 1 << 16,
-    ReadControl = 1 << 17,
-    WriteDac = 1 << 18,
-    WriteOwner = 1 << 19,
-    Synchronize = 1 << 20,
-    AccessSystemSecurity = 1 << 24,
-    MaximumAllowed = 1 << 25,
-    GenericAll = 1 << 28,
-    GenericExecute = 1 << 29,
-    GenericWrite = 1 << 30,
-    GenericRead = 1 << 31
+    GenericRead = 0b_1000,
+    GenericWrite = 0b_0100,
+    GenericExecute = 0b_0010,
+    GenericAll = 0b_0001,
 }
 
 [Flags]
-public enum NonfolderAccessRights
+public enum StandardAccessRights : ushort
 {
-    ReadData = 1,
-    WriteData = 1 << 1,
-    AppendMsg = 1 << 2,
-    ReadEa = 1 << 3,
-    WriteEa = 1 << 4,
-    Execute = 1 << 5,
-    ReadAttributes = 1 << 7,
-    WriteAttributes = 1 << 8,
-    WriteOwnProperty = 1 << 9,
-    DeleteOwnItem = 1 << 10,
-    ViewItem = 1 << 11
-}
-
-[Flags]
-public enum FolderAccessRights
-{
-    ListDirectory = 1,
-    AddFile = 1 << 1,
-    AddSubdirectory = 1 << 2,
-    ReadEa = 1 << 3,
-    WriteEa = 1 << 4,
-    ReadAttributes = 1 << 7,
-    WriteAttributes = 1 << 8,
-    WriteOwnProperty = 1 << 9,
-    DeleteOwnItem = 1 << 10,
-    ViewItem = 1 << 11,
-    Owner = 1 << 14,
-    Contact = 1 << 15
-}
-
-[Flags]
-public enum MandatoryLabelAccessRights
-{
-    NoWriteUp = 1,
-    NoReadUp = 1 << 1,
-    NoExecuteUp = 1 << 2
+    Synchronize = 0b_10000,
+    WriteOwner = 0b_01000,
+    WriteDacl = 0b_00100,
+    ReadControl = 0b_00010,
+    Delete = 0b_00001,
 }

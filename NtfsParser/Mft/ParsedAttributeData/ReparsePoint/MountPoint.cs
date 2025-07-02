@@ -2,6 +2,15 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
+/// <summary>
+/// Mounted folder or drive
+/// </summary>
+/// <param name="SubstituteNameOffset">Offset at which substitute name starts. Relative to the start of the data</param>
+/// <param name="SubstituteNameSize">Size of the substitute name in bytes</param>
+/// <param name="PrintNameOffset">Offset at which print name starts. Relative to the start of the data</param>
+/// <param name="PrintNameSize">Size of the substitute name in bytes</param>
+/// <param name="SubstituteName">Target's pathname</param>
+/// <param name="PrintName">User-friendly target's pathname</param>
 public readonly record struct MountPoint(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset, 
     ushort PrintNameSize, UnicodeName SubstituteName, UnicodeName PrintName)
 {

@@ -21,10 +21,19 @@ public class MftReader
 
     private void SetMftIndex(int mftIndex)
     {
+        var position = MftIndexToStreamOffset(mftIndex);
+        if (position == -1)
+            throw new ArgumentException("Provided index is out of MFT range.");
+        
+        _mftIndex = mftIndex;
+        _stream.Position = position;
+    }
+
+    private long MftIndexToStreamOffset(int mftIndex)
+    {
         if (mftIndex < 0)
             throw new ArgumentException("Index should be greater than 0");
-
-        long indexCopy = mftIndex;
+        
         var position = 0L;
         foreach (var run in _mft.MftDataRuns)
         {
@@ -32,20 +41,26 @@ public class MftReader
                 continue;
 
             position += run.Offset * _mft.ClusterByteSize;
-            var runLengthInRecords = run.Length * _mft.ClusterByteSize / _mft.RecordByteSize;
-            indexCopy -= runLengthInRecords;
-            if (indexCopy >= 0)
+            var runLengthInRecords = (int)run.Length * _mft.ClusterByteSize / _mft.RecordByteSize;
+            mftIndex -= runLengthInRecords;
+            if (mftIndex >= 0)
                 continue;
             
-            position += (runLengthInRecords - -indexCopy) * _mft.RecordByteSize;
-            _mftIndex = mftIndex;
-            _stream.Position = position;
-            return;
+            position += (runLengthInRecords - -mftIndex) * _mft.RecordByteSize;
+            return position;
         }
-
-        throw new ArgumentException("Provided index is out of MFT range.");
+        
+        return -1;
     }
-
+    
+    public MftRecord RandomReadAt(int mftIndex)
+    {
+        var position = MftIndexToStreamOffset(mftIndex);
+        var rawRecord = _stream.ReadRawRecordAt(position);
+        var parsed = MftRecord.Parse(rawRecord, _mft.SectorByteSize);
+        return parsed;
+    }
+    
     public MftRecord ReadMftRecord()
     {
         var record = _stream.ReadRawRecord();

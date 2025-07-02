@@ -2,9 +2,33 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
+/// <summary>
+/// An attribute that stores the file's name
+/// </summary>
+/// <param name="ReferenceToParentDirectory">Reference to the directory record where the file is stored</param>
+/// <param name="FileCreated">The time when the file was created</param>
+/// <param name="FileAltered">The time when the file was last changed.
+/// This value is updated only when this attribute is updated, meaning there is a high chance that it's out-of-date.
+/// Please refer to the STANDARD_INFORMATION attribute to get up-to-date time</param>
+/// <param name="MftChanged">The time when the file's MFT record was changed.
+/// This value is updated only when this attribute is updated, meaning there is a high chance that it's out-of-date.
+/// Please refer to the STANDARD_INFORMATION attribute to get up-to-date time</param>
+/// <param name="FileRead">The time when the file was last read.
+/// This value is updated only when this attribute is updated, meaning there is a high chance that it's out-of-date.
+/// Please refer to the STANDARD_INFORMATION attribute to get up-to-date time</param>
+/// <param name="AllocatedSizeByte">Total size of all clusters.
+/// Because NTFS can only allocate data in clusters, this value is a multiple of the cluster size</param>
+/// <param name="ActualSizeByte">Actual size of the data stored</param>
+/// <param name="Flags"></param>
+/// <param name="ExtendedData">Used by extended attributes and reparse points.
+/// If the file have extended attributes, then this field is equal to the size of the attributes.
+/// If the file has reparse point flag, then this value is a reparse tag</param>
+/// <param name="FilenameLength">Length of the name in Unicode characters</param>
+/// <param name="FilenameNamespace">Namespace of the name</param>
+/// <param name="Name">File's name</param>
 public readonly record struct FileName(FileReference ReferenceToParentDirectory, FileTime FileCreated, FileTime FileAltered,
-    FileTime MftChanged, FileTime FileRead, ulong AllocatedFileSize, ulong RealFileSize, FileNameFlags Flags, uint EaReparse,
-    byte FilenameLength, byte FilenameNamespace, UnicodeName Name)
+    FileTime MftChanged, FileTime FileRead, ulong AllocatedSizeByte, ulong ActualSizeByte, FileNameFlags Flags, uint ExtendedData,
+    byte FilenameLength, FnNamespace FilenameNamespace, UnicodeName Name)
 {
     public static FileName CreateFromRawData(in RawAttributeData rawData)
     {
@@ -18,15 +42,15 @@ public readonly record struct FileName(FileReference ReferenceToParentDirectory,
         var allocatedFileSize = reader.ReadUInt64();
         var realFileSize = reader.ReadUInt64();
         var flags = reader.ReadUInt32();
-        var eaReparse = reader.ReadUInt32();
+        var extendedData = reader.ReadUInt32();
         var filenameLength = reader.ReadByte();
         var filenameNamespace = reader.ReadByte();
         var filename = reader.ReadBytes(filenameLength * 2); // utf-16 encoded name. 2 bytes/char
         
         return new FileName(referenceToParentDirectory, new FileTime((long)fileCreated), 
             new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
-            new FileTime((long)fileRead), allocatedFileSize, realFileSize, (FileNameFlags)flags, eaReparse,
-            filenameLength, filenameNamespace, new UnicodeName(filename.ToArray()));
+            new FileTime((long)fileRead), allocatedFileSize, realFileSize, (FileNameFlags)flags, extendedData,
+            filenameLength, (FnNamespace)filenameNamespace, new UnicodeName(filename.ToArray()));
     }
 }
 
@@ -38,13 +62,35 @@ public enum FileNameFlags : uint
     System = 0x0004,
     Archive = 0x0020,
     Device = 0x0040,
-    Temporary = 0x0100,
-    Sparse = 0x0200,
-    ReparsePoint = 0x0400,
-    Compressed = 0x0800,
-    Offline = 0x1000,
-    NotContentIndexed = 0x2000,
-    Encrypted = 0x4000,
+    Normal = 0x0080,
+    Temporary = 0x00100,
+    SparseFile = 0x00200,
+    ReparsePoint = 0x00400,
+    Compressed = 0x00800,
+    Offline = 0x01000,
+    NotContentIndexed = 0x02000,
+    Encrypted = 0x04000,
     Directory = 0x10000000,
     IndexView = 0x20000000
+}
+
+public enum FnNamespace
+{
+    /// <summary>
+    /// Case-sensitive, all Unicode characters are allowed, except for '/' and NULL
+    /// </summary>
+    Posix,
+    /// <summary>
+    /// Subset of the POSIX, case-insensitive, all Unicode characters are allowed, except for special characters
+    /// </summary>
+    Win32,
+    /// <summary>
+    /// Only uppercase characters and numbers, up to eight characters for the name, up to three characters for the extension, no special characters
+    /// (https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/18e63b13-ba43-4f5f-a5b7-11e871b71f14) 
+    /// </summary>
+    Dos,
+    /// <summary>
+    /// Win32 name that follows DOS rules
+    /// </summary>
+    DosCompatibleWin32
 }

@@ -15,7 +15,8 @@ public class MftStream
     private readonly SafeFileHandle _volumeHandle;
     private readonly (long start, long end)[] _mftBoundaries;
     private readonly int _mftRecordSizeInBytes;
-    
+
+    private byte[] _randomReadBuffer;
     private byte[] _buffer;
     private int _offsetInBuffer; // current offset in the buffer to read records from
     private int _validDataInBufferSize;
@@ -29,6 +30,7 @@ public class MftStream
         _mftBoundaries = GetMftBoundaries(mft.MftDataRuns, mft.ClusterByteSize);
         _mftRecordSizeInBytes = mft.RecordByteSize;
         _buffer = [];
+        _randomReadBuffer = new byte[mft.RecordByteSize];
         Position = _mftBoundaries[0].start;
         SetBufferSize(DefaultBufferSizeInRecords);
     }
@@ -58,6 +60,13 @@ public class MftStream
         _buffer = newBuffer;
     }
 
+    public Span<byte> ReadRawRecordAt(long position)
+    {
+        _ = ValidatePosition(position);
+        RandomAccess.Read(_volumeHandle, _randomReadBuffer, position);
+        return _randomReadBuffer.AsSpan();
+    }
+    
     public Span<byte> ReadRawRecord()
     {
         if (!CanRead)
@@ -109,7 +118,6 @@ public class MftStream
         
         var dataRunIndex = ValidatePosition(position);
         var positionDifference = Math.Abs((position - _position));
-        // var positionDifferenceInRecords = (int)Math.Abs((position - _position) / _mftRecordSizeInBytes);
         if (dataRunIndex != _currentDataRunIndex)
             InvalidateBuffer();
         else if (position > _position && positionDifference < _validDataInBufferSize - _offsetInBuffer)

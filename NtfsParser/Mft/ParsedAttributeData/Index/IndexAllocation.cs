@@ -2,6 +2,10 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
+/// <summary>
+/// An attribute that contains one or more index records
+/// </summary>
+/// <param name="Records">Index records</param>
 public readonly record struct IndexAllocation(IndexRecord[] Records)
 {
     public static IndexAllocation CreateFromRawData(in RawAttributeData rawData, int indexRecordSize, int sectorSize)

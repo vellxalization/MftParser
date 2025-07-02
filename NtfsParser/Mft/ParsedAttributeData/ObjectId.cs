@@ -2,6 +2,14 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
+/// <summary>
+/// An attribute that stores MFT record's unique identifier. Every record should have one.
+/// If it's absent, Windows will create one next time user opens the file
+/// </summary>
+/// <param name="Id">Record's ID</param>
+/// <param name="BirthVolumeId">ID of the volume where the file was created. Unused or very rare, none of the records had one during tests</param>
+/// <param name="BirthObjectId">Original ID of the file in case it was overwritten. Unused or very rare, none of the records had one during tests</param>
+/// <param name="DomainId">ID of the domain where the file was created. Unused or very rare, none of the records had one during tests</param>
 public readonly record struct ObjectId(Guid Id, Guid BirthVolumeId, Guid BirthObjectId, Guid DomainId)
 {
     public static ObjectId CreateFromRawData(in RawAttributeData rawData)

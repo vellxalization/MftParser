@@ -2,6 +2,16 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
+/// <summary>
+/// Symbolic link to a file or folder
+/// </summary>
+/// <param name="SubstituteNameOffset">Offset at which substitute name starts. Relative to the start of the data</param>
+/// <param name="SubstituteNameSize">Size of the substitute name in bytes</param>
+/// <param name="PrintNameOffset">Offset at which print name starts. Relative to the start of the data</param>
+/// <param name="PrintNameSize">Size of the substitute name in bytes</param>
+/// <param name="IsRelative">The substitute name is a path name relative to the directory containing the symbolic link</param>
+/// <param name="SubstituteName">Target's pathname</param>
+/// <param name="PrintName">User-friendly target's pathname</param>
 public readonly record struct SymbolicLink(ushort SubstituteNameOffset, ushort SubstituteNameSize, ushort PrintNameOffset,
     ushort PrintNameSize, bool IsRelative, UnicodeName SubstituteName, UnicodeName PrintName)
 {

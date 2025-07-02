@@ -1,20 +1,28 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public readonly record struct IndexRecord(IndexRecordHeader Header, IndexNodeHeader IndexNodeHeader, FixUp FixUp,
+/// <summary>
+/// A collection of index entries. Each index record is a single node in an index tree.
+/// Always stored in an index allocation. Multiple records can be stored in a single allocation
+/// </summary>
+/// <param name="RecordHeader">Header with information about the record</param>
+/// <param name="NodeHeader">Header of a node</param>
+/// <param name="FixUp">Fix up values of the record</param>
+/// <param name="Entries">Index entries</param>
+public readonly record struct IndexRecord(IndexRecordHeader RecordHeader, IndexNodeHeader NodeHeader, FixUp FixUp,
     IndexEntry[] Entries)
 {
     public static IndexRecord Parse(Span<byte> rawRecord, int sectorSize)
     {
         var reader = new SpanBinaryReader(rawRecord);
         var rawHeader = reader.ReadBytes(24);
-        var header = IndexRecordHeader.Parse(rawHeader);
+        var recordHeader = IndexRecordHeader.Parse(rawHeader);
 
         var offset = reader.Position; // offsets to entries are relative to the node header so we copy it
         rawHeader = reader.ReadBytes(16);
         var nodeHeader = IndexNodeHeader.Parse(rawHeader);
 
-        reader.Position = header.FixUpOffset;
-        var rawFixUp = reader.ReadBytes(header.FixUpLength * 2);
+        reader.Position = recordHeader.FixUpOffset;
+        var rawFixUp = reader.ReadBytes(recordHeader.FixUpLength * 2);
         var fixUp = FixUp.Parse(rawFixUp);
         fixUp.ReverseFixUp(rawRecord, sectorSize);
 
@@ -24,10 +32,17 @@ public readonly record struct IndexRecord(IndexRecordHeader Header, IndexNodeHea
         var entries = IndexEntry.ParseEntries(rawEntries);
         
         fixUp.ReapplyFixUp(rawRecord, sectorSize);
-        return new IndexRecord(header, nodeHeader, fixUp, entries);
+        return new IndexRecord(recordHeader, nodeHeader, fixUp, entries);
     }
 }
 
+/// <summary>
+/// Header of an index record
+/// </summary>
+/// <param name="FixUpOffset">Offset inside INDX record from where fix up values start</param>
+/// <param name="FixUpLength">Length of the fix up values. Single fix up value is 2-bytes long</param>
+/// <param name="LogSequenceNumber">LSN. Used by $LogFile</param>
+/// <param name="Vcn">Virtual Cluster Number. Relative to the index allocation where this record is stored</param>
 public record struct IndexRecordHeader(ushort FixUpOffset, ushort FixUpLength, ulong LogSequenceNumber, ulong Vcn)
 {
     public static IndexRecordHeader Parse(Span<byte> rawHeader)

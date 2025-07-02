@@ -2,6 +2,10 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData;
 
+/// <summary>
+/// A collection of extended attributes entries
+/// </summary>
+/// <param name="Entries">A collection of key-value pairs</param>
 public readonly record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
 {
     public static ExtendedAttribute CreateFromRawData(in RawAttributeData rawData)
@@ -19,6 +23,15 @@ public readonly record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries
     }
 }
 
+/// <summary>
+/// Single key-value pair of an extended attribute
+/// </summary>
+/// <param name="EntrySize">Size of the entry</param>
+/// <param name="NeedEa"></param>
+/// <param name="CharNameLength">Size of the key in ASCII characters</param>
+/// <param name="ValueSize">Size of the value in ASCII characters</param>
+/// <param name="Name">Name of the attribute (the key)</param>
+/// <param name="Value">Value of the attrubite</param>
 public readonly record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte CharNameLength, short ValueSize,
     AsciiName Name, byte[] Value)
 {

@@ -1,3 +1,8 @@
-﻿namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
+﻿using System.Security.Principal;
 
-public readonly record struct SecurityId(byte[] SId);
+namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
+
+public readonly record struct SecurityId(byte[] SId)
+{
+    public SecurityIdentifier ToDotnetVariant() => new(SId, 0);
+}

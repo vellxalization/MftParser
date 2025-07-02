@@ -2,7 +2,13 @@
 
 namespace NtfsParser.Mft.ParsedAttributeData.Index;
 
-public readonly record struct IndexRoot(IndexRootHeader Header, IndexNodeHeader NodeHeader, IndexEntry[] Entries)
+/// <summary>
+/// An attribute that represents an index tree root. Is a single node in an index tree. Always present in records that are part of an index
+/// </summary>
+/// <param name="RootHeader">Header with information about index</param>
+/// <param name="NodeHeader">Header of a node</param>
+/// <param name="Entries">Index entries</param>
+public readonly record struct IndexRoot(IndexRootHeader RootHeader, IndexNodeHeader NodeHeader, IndexEntry[] Entries)
 {
     public static IndexRoot CreateFromRawData(in RawAttributeData rawData)
     {
@@ -24,6 +30,13 @@ public readonly record struct IndexRoot(IndexRootHeader Header, IndexNodeHeader 
     }
 }
 
+/// <summary>
+/// Header of an index root node
+/// </summary>
+/// <param name="AttributeType">Type of the attribute that is store in index records. 0 means that the stored data is not an attribute</param>
+/// <param name="CollationRule">How records are sorted</param>
+/// <param name="IndexRecordByteSize">Size of a single index records in bytes. Typically, is set to 4096</param>
+/// <param name="IndexRecordClusterSize">Size of a single index record in clusters. Typically, is set to 1</param>
 public record struct IndexRootHeader(AttributeType AttributeType, CollationRule CollationRule, uint IndexRecordByteSize,
     byte IndexRecordClusterSize)
 {

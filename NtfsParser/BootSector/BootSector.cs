@@ -1,5 +1,12 @@
 ﻿namespace NtfsParser.BootSector;
 
+/// <summary>
+/// Structure that represents an NTFS boot sector
+/// </summary>
+/// <param name="OemId">Volume id ("NTFS    ")</param>
+/// <param name="Bpb">BIOS parameters block</param>
+/// <param name="ExtBpb">Extended BIOS parameters block</param>
+/// <param name="Bootstrap">Boot code</param>
 public readonly record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
 {
     public int SectorByteSize => Bpb.BytesPerSector;
