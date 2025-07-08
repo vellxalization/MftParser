@@ -1,7 +1,7 @@
 ﻿namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
 /// <summary>
-/// Reparse point's tag. First four bits from the most significant are flags, next twelve - reserved, next sixteen describe the type.
+/// Reparse point's tag. First four bits from the most significant are flags, next twelve - reserved, last sixteen describe the type.
 /// Together they can be interpreted as one of the predefined tags
 /// </summary>
 /// <param name="Value">Raw tag value</param>
@@ -11,7 +11,15 @@ public readonly record struct ReparseTag(uint Value)
     /// Returns first four most significant bits
     /// </summary>
     /// <returns>Tag's flags</returns>
-    public ReparseFlags GetFlags() => (ReparseFlags)(Value & 0b_1111_0000_00000000_00000000_00000000);
+    public ReparseFlags GetFlags() => (ReparseFlags)(Value & FlagsMask);
+    private const uint FlagsMask = 0b_1111_0000_00000000_00000000_00000000;
+
+    /// <summary>
+    /// Returns sixteen least significant bits
+    /// </summary>
+    /// <returns></returns>
+    public ushort GetRawType() => (ushort)(Value & TypeMask);
+    private const ushort TypeMask = ushort.MaxValue;
     
     /// <summary>
     /// Interprets the tag as one of the predefined tags 

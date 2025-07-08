@@ -1,5 +1,8 @@
 ﻿namespace NtfsParser.Mft.Decompression;
 
+/// <summary>
+/// Static class for decompressing NTFS-compressed data
+/// </summary>
 public static class DataDecompressor
 {
     public static byte[] Decompress(in CompressedData data, int decompressionBufferSize)
@@ -7,7 +10,7 @@ public static class DataDecompressor
         var compressedSpan = data.Data.AsSpan();
         var decompressionBuffer = new DecompressionBuffer(decompressionBufferSize);
         foreach (var unit in data.CompressionUnits)
-            ProcessUnit(decompressionBuffer, compressedSpan, in unit, data.CompressionUnitSizeCluster, data.ClusterSizeByte);
+            ProcessUnit(decompressionBuffer, compressedSpan, in unit, data.CompressionUnitSize, data.ClusterSize);
         
         return decompressionBuffer.Buffer;
     }

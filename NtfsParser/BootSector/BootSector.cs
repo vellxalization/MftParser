@@ -3,17 +3,32 @@
 /// <summary>
 /// Structure that represents an NTFS boot sector
 /// </summary>
-/// <param name="OemId">Volume id ("NTFS    ")</param>
+/// <param name="OemId">Volume id (ASCII-encoded string "NTFS    ")</param>
 /// <param name="Bpb">BIOS parameters block</param>
 /// <param name="ExtBpb">Extended BIOS parameters block</param>
 /// <param name="Bootstrap">Boot code</param>
 public readonly record struct BootSector(ulong OemId, BiosParamsBlock Bpb, ExtendedBpb ExtBpb, byte[] Bootstrap)
 {
-    public int SectorByteSize => Bpb.BytesPerSector;
-    public int ClusterByteSize => Bpb.BytesPerSector * Bpb.SectorsPerCluster;
-    public int MftRecordByteSize => GetMftRecordByteSize();
-    public int IndexRecordByteSize => GetIndexRecordByteSize();
-    public long MftStartByteOffset => ExtBpb.LogicalClusterForMft * ClusterByteSize;
+    /// <summary>
+    /// Size of a single sector in bytes
+    /// </summary>
+    public int SectorSize => Bpb.BytesPerSector;
+    /// <summary>
+    /// Size of a single cluster in bytes
+    /// </summary>
+    public int ClusterSize => Bpb.BytesPerSector * Bpb.SectorsPerCluster;
+    /// <summary>
+    /// Size of a single MFT record in bytes
+    /// </summary>
+    public int MftRecordSize => GetMftRecordByteSize();
+    /// <summary>
+    /// Size of a single INDX record in bytes
+    /// </summary>
+    public int IndexRecordSize => GetIndexRecordByteSize();
+    /// <summary>
+    /// Byte offset to the start of the volume's MFT
+    /// </summary>
+    public long MftStartOffset => ExtBpb.MftCluster * ClusterSize;
     
     public static BootSector Parse(Span<byte> rawBootSector)
     {
@@ -39,10 +54,10 @@ public readonly record struct BootSector(ulong OemId, BiosParamsBlock Bpb, Exten
     }
     
     private int GetMftRecordByteSize() => ExtBpb.ClustersPerMftRecord > 0
-        ? ExtBpb.ClustersPerMftRecord * ClusterByteSize
+        ? ExtBpb.ClustersPerMftRecord * ClusterSize
         : 1 << -ExtBpb.ClustersPerMftRecord; // 2^abs(value)
 
     private int GetIndexRecordByteSize() => ExtBpb.ClustersPerIndexRecord > 0
-        ? ExtBpb.ClustersPerIndexRecord * ClusterByteSize 
+        ? ExtBpb.ClustersPerIndexRecord * ClusterSize 
         : 1 << -ExtBpb.ClustersPerMftRecord; // 2^abs(value)
 }

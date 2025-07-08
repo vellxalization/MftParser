@@ -2,6 +2,9 @@
 
 namespace NtfsParser;
 
+/// <summary>
+/// A BinaryReader() but for Span of bytes
+/// </summary>
 public ref struct SpanBinaryReader(Span<byte> span)
 {
     public int Position { get; set; } = 0;

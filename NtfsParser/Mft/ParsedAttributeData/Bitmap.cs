@@ -4,10 +4,10 @@ namespace NtfsParser.Mft.ParsedAttributeData;
 
 /// <summary>
 /// An attribute that contains data about storage status. Used by indices and $MFT meta file.
-/// Indices use it to indicate what index records are used in an index allocation.
-/// $MFT file use it to indicate what file records are used
+/// Indices use it to indicate which index records are used in an index allocation.
+/// $MFT file use it to indicate which file records are used
 /// </summary>
-/// <param name="Data">Bit field</param>
+/// <param name="Data">Raw bit field</param>
 public readonly record struct Bitmap(byte[] Data)
 {
     public static Bitmap CreateFromRawData(in RawAttributeData rawData) => new(rawData.Data);

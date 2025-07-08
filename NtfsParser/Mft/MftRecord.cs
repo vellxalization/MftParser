@@ -23,7 +23,7 @@ public readonly record struct MftRecord(MftRecordHeader RecordHeader, MftAttribu
         var attributes = MftAttribute.ParseAttributes(rawAttributes);
         // rest is unused bytes
         
-        header.FixUp.ReapplyFixUp(rawMftRecord, sectorSize);
+        header.FixUp.ApplyFixUp(rawMftRecord, sectorSize);
         return new MftRecord(header, attributes);
     }
 }
@@ -33,16 +33,17 @@ public readonly record struct MftRecord(MftRecordHeader RecordHeader, MftAttribu
 /// </summary>
 /// <param name="MultiSectorHeader">Part of the header containing a signature and information about fix up values</param>
 /// <param name="LogFileSequenceNumber">Sequence number in $LogFile. Changed every time this record is modified</param>
-/// <param name="SequenceNumber">Sequence value. Number of times this record was reused (incremented when the file is deleted)</param>
+/// <param name="SequenceNumber">Sequence number. Incremented each time the record is freed. 0 means the record is unused.
+/// Any references that reference this record must have the same sequence number</param>
 /// <param name="HardLinkCount">Number of hard links. Each hard link creates one additional FILE_NAME attribute</param>
-/// <param name="AttributesOffset">Offset at which attributes start</param>
+/// <param name="AttributesOffset">Offset in bytes of the first attribute in the list</param>
 /// <param name="EntryFlags">Record's flags</param>
 /// <param name="UsedEntrySize">Size of the record in bytes</param>
 /// <param name="AllocatedEntrySize">Size that the record takes up on disk.
 /// Should be equal to the MFT record size in the boot sector (Typically, 1024 bytes)</param>
-/// <param name="BaseRecordReference">A reference to the base MFT record.
-/// Only used when a record is allocated to store additional attributes for the base record's $ATTRIBUTE_LIST</param>
-/// <param name="NextAttributeId">Attribute that will be assigned to the next attribute</param>
+/// <param name="BaseRecordReference">Reference to the base MFT record.
+/// Present only when this record is allocated to store additional attributes for the base record's $ATTRIBUTE_LIST</param>
+/// <param name="NextAttributeId">ID that will be assigned to the next attribute</param>
 /// <param name="FixUp">Fix up values of the record</param>
 public readonly record struct MftRecordHeader(MultiSectorHeader MultiSectorHeader, ulong LogFileSequenceNumber, ushort SequenceNumber,
     ushort HardLinkCount, ushort AttributesOffset, MftRecordHeaderFlags EntryFlags, uint UsedEntrySize, uint AllocatedEntrySize,
@@ -66,7 +67,7 @@ public readonly record struct MftRecordHeader(MultiSectorHeader MultiSectorHeade
         var baseRecordReference = FileReference.Parse(rawReference);
         var nextAttributeId = reader.ReadUInt16();
         reader.Position = header.FixUpOffset;
-        var rawFixUp = reader.ReadBytes(header.FixUpLength * 2);
+        var rawFixUp = reader.ReadBytes(header.FixUpSize * 2);
         var fixUp = FixUp.Parse(rawFixUp);
         // TODO: there can be 2 additional fields depending on the OS version but I will ignore them for now
         // Maybe I should pass the size like in the StandardInformation.
@@ -105,12 +106,11 @@ public enum MftRecordHeaderFlags : ushort
 
 /// <summary>
 /// MFT record's header that contains a signature and fix up value
-/// https://learn.microsoft.com/en-us/windows/win32/devnotes/multi-sector-header
 /// </summary>
-/// <param name="Signature">Record's signature</param>
-/// <param name="FixUpOffset">Offset inside MFT record from where fix up values start</param>
-/// <param name="FixUpLength">Length of the fix up values. Single fix up value is 2-bytes long</param>
-public readonly record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffset, ushort FixUpLength)
+/// <param name="Signature">Record's signature. ASCII-encoded string "FILE"</param>
+/// <param name="FixUpOffset">Offset to the fixup array from the start of the record</param>
+/// <param name="FixUpSize">Size of the fixup array in bytes. Single fix up value is 2-bytes long</param>
+public readonly record struct MultiSectorHeader(MftSignature Signature, ushort FixUpOffset, ushort FixUpSize)
 {
     public static MultiSectorHeader Parse(Span<byte> rawHeader)
     {

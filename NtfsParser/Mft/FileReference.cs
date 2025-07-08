@@ -1,19 +1,17 @@
 ﻿namespace NtfsParser.Mft;
 
 /// <summary>
-/// Reference to an MFT record. Represents an offset in MFT in records.
-/// E.g. value 32 means that the desired record is 32nd in the MFT (0-based)
+/// Structure that represents an address in the MFT. Consists of the 48-bit number (0-based index in the MFT) and the 16-bit sequence number.
 /// </summary>
-/// <param name="SegmentNumberLowPart">Reference is a 48-bit number. This is it's lowest part (first 32 bits)</param>
-/// <param name="SegmentNumberHighPart">Reference is a 48-bit number. This is it's highest part (last 16 bits)</param>
-/// <param name="SequenceNumber">Should be equal to the parent's record sequence number.
-/// If it isn't, then it's an old/corrupted reference</param>
+/// <param name="SegmentNumberLowPart">First 32 bits of the index</param>
+/// <param name="SegmentNumberHighPart">Last 16 bits of the index</param>
+/// <param name="SequenceNumber">See <see cref="MftRecordHeader"/>. This value should be equal to the record's value</param>
 public readonly record struct FileReference(uint SegmentNumberLowPart, ushort SegmentNumberHighPart, ushort SequenceNumber)
 {
     /// <summary>
-    /// Offset in records inside the MFT
+    /// 0-based index in the MFT
     /// </summary>
-    public ulong MftIndex => GetMftOffset();
+    public long MftIndex => GetMftOffset();
     
     public static FileReference Parse(Span<byte> rawReference)
     {
@@ -25,10 +23,10 @@ public readonly record struct FileReference(uint SegmentNumberLowPart, ushort Se
         return new FileReference(segmentNumberLowPart, segmentNumberHighPart, sequenceNumber);
     }
     
-    private ulong GetMftOffset()
+    private long GetMftOffset()
     {
-        ulong offset = SegmentNumberLowPart;
-        offset |= (ulong)SegmentNumberHighPart << 32;
+        long offset = SegmentNumberLowPart;
+        offset |= (long)SegmentNumberHighPart << 32;
         return offset;
     }
 }

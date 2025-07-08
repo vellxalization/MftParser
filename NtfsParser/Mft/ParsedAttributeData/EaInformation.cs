@@ -3,12 +3,12 @@
 namespace NtfsParser.Mft.ParsedAttributeData;
 
 /// <summary>
-/// Attribute that contains information about EXTENDED_ATTRIBUTE
+/// Attribute that contains information about extended attribute. Used to support HPFS within NTFS
 /// </summary>
-/// <param name="EaEntrySize">Packed size of entries in extended attribute in bytes</param>
+/// <param name="PackedSize">Packed size of entries in extended attribute in bytes</param>
 /// <param name="NeedEaFlagsCount">Number of entries that have "NeedEa" flag set</param>
-/// <param name="EaDataSize">Unpacked size of entries in extended attribute in bytes</param>
-public readonly record struct EaInformation(ushort EaEntrySize, ushort NeedEaFlagsCount, uint EaDataSize)
+/// <param name="UnpackedSize">Unpacked size of entries in extended attribute in bytes. Extended attributes use this value as their size</param>
+public readonly record struct EaInformation(ushort PackedSize, ushort NeedEaFlagsCount, uint UnpackedSize)
 {
     public static EaInformation CreateFromRawData(in RawAttributeData rawData)
     {

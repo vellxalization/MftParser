@@ -4,7 +4,7 @@ namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
 /// <summary>
 /// An attribute used to control access to files and folders. Most descriptors are stored in the $Secure meta file,
-/// however some of the files will still have this attribute 
+/// however some of the records will still have this attribute 
 /// </summary>
 /// <param name="Header">Descriptor's header</param>
 /// <param name="SystemList">Access list used to log access</param>
@@ -49,34 +49,80 @@ public readonly record struct SecurityDescriptor(SecurityDescriptorHeader Header
     }
 }
 
+/// <summary>
+/// Descriptor's control flags
+/// </summary>
 [Flags]
 public enum SecurityDescriptorControlFlags : ushort
 {
+    /// <summary>
+    /// Owner's SID was provided by a default mechanism
+    /// </summary>
     OwnerDefaulted = 0x0001,
+    /// <summary>
+    /// Group's SID was provided by a default mechanism
+    /// </summary>
     GroupDefaulted = 0x0002,
+    /// <summary>
+    /// Descriptor have a discretionary access list. If the flag is present and the list is null,
+    /// then the descriptor allows access to everyone
+    /// </summary>
     DaclPresent = 0x0004,
+    /// <summary>
+    /// Descriptor's DACL is default (e.g. access token's default DACL)
+    /// </summary>
     DaclDefaulted = 0x0008,
+    /// <summary>
+    /// Descriptor have a system access list
+    /// </summary>
     SaclPresent = 0x0010,
+    /// <summary>
+    /// SACL is provided by a default mechanism
+    /// </summary>
     SaclDefaulted = 0x0020,
+    /// <summary>
+    /// Required descriptor in which the DACL supports automatic propagation of inheritable ACEs to existing child objects
+    /// </summary>
     DaclAutoInheritReq = 0x0100,
+    /// <summary>
+    /// Required descriptor in which the SACL supports automatic propagation of inheritable ACEs to existing child objects
+    /// </summary>
     SaclAutoInheritReq = 0x0200,
+    /// <summary>
+    /// DACL supports automatic propagation of inheritable ACEs to existing child objects
+    /// </summary>
     DaclAutoInherited = 0x0400,
+    /// <summary>
+    /// SACL supports automatic propagation of inheritable ACEs to existing child objects
+    /// </summary>
     SaclAutoInherited = 0x0800,
+    /// <summary>
+    /// DACL is protected from being modified by inheritable ACEs
+    /// </summary>
     DaclProtected = 0x1000,
+    /// <summary>
+    /// SACL is protected from being modified by inheritable ACEs
+    /// </summary>
     SaclProtected = 0x2000,
+    /// <summary>
+    /// Resource manager control is valid
+    /// </summary>
     RmControlValid = 0x4000,
+    /// <summary>
+    /// Descriptor is self-relative
+    /// </summary>
     SelfRelative = 0x8000,
 }
 
 /// <summary>
 /// Descriptor's header that contains information about the layout
 /// </summary>
-/// <param name="Revision">Revision. Currently, is set to 2</param>
+/// <param name="Revision">Revision. Current descriptors revision in 0x1</param>
 /// <param name="ControlFlags">Flags</param>
-/// <param name="OffsetToUserSid">Offset to the user's security ID within the raw descriptor</param>
-/// <param name="OffsetToGroupSid">Offset to the group's security ID within the raw descriptor</param>
-/// <param name="OffsetToSacl">Offset to the system access list within the raw descriptor</param>
-/// <param name="OffsetToDacl">Offset to the discretionary access list within the raw descriptor</param>
+/// <param name="OffsetToUserSid">Offset to the start of the user SID from the start of the struct</param>
+/// <param name="OffsetToGroupSid">Offset to the start of the group SID from the start of the descriptor</param>
+/// <param name="OffsetToSacl">Offset to the start of the system access list from the start of the descriptor</param>
+/// <param name="OffsetToDacl">Offset to the discretionary access list from the start of the descriptor</param>
 public record struct SecurityDescriptorHeader(byte Revision, SecurityDescriptorControlFlags ControlFlags, uint OffsetToUserSid,
     uint OffsetToGroupSid, uint OffsetToSacl, uint OffsetToDacl)
 {

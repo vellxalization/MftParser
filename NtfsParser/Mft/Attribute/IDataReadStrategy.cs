@@ -17,11 +17,11 @@ public class NonresidentNoSparseStrategy : IDataReadStrategy
 {
     public RawAttributeData GetDataFromDataRuns(VolumeDataReader reader, in MftAttribute attribute)
     {
-        if (attribute.Header.Nonresident.ActualSizeByte == 0)
+        if (attribute.Header.Nonresident.ActualSize == 0)
             return new RawAttributeData([]);
         
         var dataRuns = DataRun.ParseDataRuns(attribute.Value);
-        var data = new byte[attribute.Header.Nonresident.AllocatedSizeByte];
+        var data = new byte[attribute.Header.Nonresident.AllocatedSize];
         long clusterOffset = 0;
         int insertOffset = 0;
         foreach (var run in dataRuns)
@@ -33,7 +33,7 @@ public class NonresidentNoSparseStrategy : IDataReadStrategy
             insertOffset += readSize;
         }
         
-        return new RawAttributeData(data[..(int)(attribute.Header.Nonresident.ActualSizeByte)]);
+        return new RawAttributeData(data[..(int)(attribute.Header.Nonresident.ActualSize)]);
     }
 }
 
@@ -41,11 +41,11 @@ public class NonresidentSparseStrategy : IDataReadStrategy
 {
     public RawAttributeData GetDataFromDataRuns(VolumeDataReader reader, in MftAttribute attribute)
     {
-        if (attribute.Header.Nonresident.ActualSizeByte == 0)
+        if (attribute.Header.Nonresident.ActualSize == 0)
             return new RawAttributeData([]);
         
         var dataRuns = DataRun.ParseDataRuns(attribute.Value);
-        var data = new byte[attribute.Header.Nonresident.AllocatedSizeByte];
+        var data = new byte[attribute.Header.Nonresident.AllocatedSize];
         long clusterOffset = 0;
         int insertOffset = 0;
         foreach (var run in dataRuns)
@@ -63,7 +63,7 @@ public class NonresidentSparseStrategy : IDataReadStrategy
             insertOffset += readSize;
         }
 
-        return new RawAttributeData(data[..(int)(attribute.Header.Nonresident.ActualSizeByte)]);
+        return new RawAttributeData(data[..(int)(attribute.Header.Nonresident.ActualSize)]);
     }
 }
 
@@ -71,11 +71,11 @@ public class NonresidentCompressedStrategy : IDataReadStrategy
 {
     public RawAttributeData GetDataFromDataRuns(VolumeDataReader reader, in MftAttribute attribute)
     {
-        if (attribute.Header.Nonresident.ActualSizeByte == 0)
+        if (attribute.Header.Nonresident.ActualSize == 0)
             return new RawAttributeData([]);
         
         var dataRuns = DataRun.ParseDataRuns(attribute.Value);
-        var data = new byte[attribute.Header.Nonresident.AllocatedClustersSizeByte];
+        var data = new byte[attribute.Header.Nonresident.AllocatedClustersSize];
         long clusterOffset = 0;
         int insertOffset = 0;
         foreach (var run in dataRuns)
@@ -93,8 +93,8 @@ public class NonresidentCompressedStrategy : IDataReadStrategy
         var compressionUnitSizeCluster = 1 << attribute.Header.Nonresident.CompressionUnitSize; // 2^compUnitSize
         var clusterSizeByte = reader.ClusterByteSize;
         var compressedData = new CompressedData(data, dataRuns, compressionUnitSizeCluster, clusterSizeByte);
-        var decompressedData = DataDecompressor.Decompress(compressedData, (int)attribute.Header.Nonresident.AllocatedSizeByte);
+        var decompressedData = DataDecompressor.Decompress(compressedData, (int)attribute.Header.Nonresident.AllocatedSize);
         
-        return new RawAttributeData(decompressedData[..(int)attribute.Header.Nonresident.ValidDataSizeByte]);
+        return new RawAttributeData(decompressedData[..(int)attribute.Header.Nonresident.ActualSize]);
     }
 }

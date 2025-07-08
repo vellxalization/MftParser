@@ -5,17 +5,19 @@
 /// </summary>
 /// <param name="LowestVcn">Starting virtual cluster number of the content. For most of the nonresident attributes is set to 0</param>
 /// <param name="HighestVcn">Ending virtual cluster number of the content</param>
-/// <param name="DataRunsOffset">Offset from which data runs start</param>
-/// <param name="CompressionUnitSize">Compression unit size stored as a power of two.
-/// Most common value is 4 which result in a 2^4 (16) clusters size (65536 bytes, assuming cluster size is 4096)</param>
-/// <param name="AllocatedSizeByte">Total size of all clusters.
-/// Because NTFS can only allocate data in clusters, this value is a multiple of the cluster size</param>
-/// <param name="ActualSizeByte">Actual size of the data stored</param>
-/// <param name="ValidDataSizeByte">Data that is actually written. Everything after is treated as a zero by file system</param>
-/// <param name="AllocatedClustersSizeByte">Size of the clusters that are actually allocated
-/// (i.e., size without sparse block because they aren't physically on the disk). Only present in compressed attributes</param>
+/// <param name="DataRunsOffset">Offset to the data runs from the start of the attribute</param>
+/// <param name="CompressionUnitSize">Size of the compression unit. Stored value is a power of two.
+/// Most common value is 4 which results in the 2^4 = 16 clusters size (65536 bytes, assuming single cluster is 4096 bytes)</param>
+/// <param name="AllocatedSize">Total size of all clusters used by the file (including sparse blocks if the file is sparse or compressed).
+/// This value is a multiple of the cluster size because NTFS can only store data in clusters.
+/// If the file isn't sparse of compressed, Windows will use this value as the "Size on disk"</param>
+/// <param name="ActualSize">Actual size of the data in bytes</param>
+/// <param name="ValidDataSize">Size of the data that is actually written. Everything after is treated as a zero by file system.
+/// https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfilevaliddata</param>
+/// <param name="AllocatedClustersSize">Present only in sparse and compressed files. Size of all the allocated clusters (without sparse blocks).
+/// Windows will use this value as the "Size on disk" if possible</param>
 public readonly record struct Nonresident(ulong LowestVcn, ulong HighestVcn, ushort DataRunsOffset, ushort CompressionUnitSize, 
-    ulong AllocatedSizeByte, ulong ActualSizeByte, ulong ValidDataSizeByte, ulong AllocatedClustersSizeByte)
+    ulong AllocatedSize, ulong ActualSize, ulong ValidDataSize, ulong AllocatedClustersSize)
 {
     public static Nonresident Parse(Span<byte> rawNonresident)
     {

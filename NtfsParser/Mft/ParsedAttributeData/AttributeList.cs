@@ -3,10 +3,10 @@
 namespace NtfsParser.Mft.ParsedAttributeData;
 
 /// <summary>
-/// A list of attributes. Used when a single MFT record is small to contain all the attributes.
+/// A list of attributes. Used when a single MFT record is too small to contain all the attributes.
 /// A new MFT record is created to fit the rest of the attributes.
 /// </summary>
-/// <param name="Entries">A list of pointers to the attributes</param>
+/// <param name="Entries">A list of the entries</param>
 public readonly record struct AttributeList(AttributeListEntry[] Entries)
 {
     public static AttributeList CreateFromRawData(in RawAttributeData rawData)
@@ -26,18 +26,18 @@ public readonly record struct AttributeList(AttributeListEntry[] Entries)
 }
 
 /// <summary>
-/// An entry that contains basic information about an attribute and points to the MFT record that contains it
+/// An entry that contains basic information about an attribute and contains reference to the MFT record that contains it
 /// </summary>
 /// <param name="AttributeType">Attribute type</param>
-/// <param name="RecordSize">Size of the records in bytes</param>
+/// <param name="RecordSize">Size of the record in bytes</param>
 /// <param name="NameSize">Size of the name in Unicode characters</param>
-/// <param name="NameOffset">Offset at where the name is stored</param>
+/// <param name="NameOffset">Offset to the name from the start of the struct</param>
 /// <param name="Vcn">Virtual Cluster Number</param>
-/// <param name="FileReference">Reference to the base record that contains the attribute</param>
+/// <param name="RecordReference">Reference to the record that contains the attribute</param>
 /// <param name="AttributeId">ID of the attribute</param>
 /// <param name="Name">Name</param>
 public record struct AttributeListEntry(AttributeType AttributeType, ushort RecordSize, byte NameSize, byte NameOffset,
-    ulong Vcn, FileReference FileReference, ushort AttributeId, UnicodeName Name)
+    ulong Vcn, FileReference RecordReference, ushort AttributeId, UnicodeName Name)
 {
     public static AttributeListEntry Parse(Span<byte> rawData)
     {

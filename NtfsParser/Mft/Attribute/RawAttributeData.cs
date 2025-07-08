@@ -5,6 +5,11 @@ using NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 
 namespace NtfsParser.Mft.Attribute;
 
+/// <summary>
+/// Attribute's data. Use object's methods to cast it to the specific attribute type.
+/// None of the methods check the data's type and assume that the caller calls the appropriate method
+/// </summary>
+/// <param name="Data">Raw data</param>
 public readonly record struct RawAttributeData(byte[] Data)
 {
     public StandardInformation ToStandardInformation() => StandardInformation.CreateFromRawData(this);

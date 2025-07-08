@@ -8,36 +8,36 @@ namespace NtfsParser.Mft.ParsedAttributeData.SecurityDescriptor;
 /// <param name="Value">Raw 32-bit value</param>
 public readonly record struct AccessMask(uint Value)
 {
-    private const uint GenericRightsMask = 0xF0000000;
     /// <summary>
     /// Returns most significant bits 0-3 as generic rights enum
     /// </summary>
     public GenericAccessRights GenericRights => (GenericAccessRights)((Value & GenericRightsMask) >> 28);
+    private const uint GenericRightsMask = 0xF0000000;
 
-    private const uint MaximumAllowedMask = 1 << 26;
     
     /// <summary>
     /// Returns boolean value signaling whether then 6th most significant bit is set
     /// </summary>
     public bool MaximumAllowed => (Value & MaximumAllowedMask) != 0;
+    private const uint MaximumAllowedMask = 1 << 26;
     
-    private const uint AccessSystemSecurityMask = 1 << 25;
     /// <summary>
     /// Returns boolean value signaling whether then 7th most significant bit is set
     /// </summary>
     public bool AccessSystemSecurity => (Value & AccessSystemSecurityMask) != 0;
+    private const uint AccessSystemSecurityMask = 1 << 25;
     
-    private const uint StandardAccessMask = 0x1F0000;
     /// <summary>
     /// Returns most significant bits 11-15 as standard rights enum
     /// </summary>
     public StandardAccessRights StandardRights => (StandardAccessRights)((Value & StandardAccessMask) >> 16);
+    private const uint StandardAccessMask = 0x1F0000;
     
-    private const ushort SpecificRightsMask = 0xFFFF;
     /// <summary>
     /// Returns most significant bits 16-31 as ushort value. Since the meaning of these flags are object-specific, we don't format them
     /// </summary>
     public ushort SpecificRights => (ushort)(Value & SpecificRightsMask);
+    private const ushort SpecificRightsMask = 0xFFFF;
 
     // public override string ToString()
     // {

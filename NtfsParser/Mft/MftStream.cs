@@ -3,20 +3,34 @@ using NtfsParser.Mft.Attribute;
 
 namespace NtfsParser.Mft;
 
+/// <summary>
+/// A buffered MFT stream
+/// </summary>
 public class MftStream
 {
     private const int DefaultBufferSizeInRecords = 8;
     
+    /// <summary>
+    /// Is there still data left to read
+    /// </summary>
     public bool CanRead => _currentDataRunIndex < _mftBoundaries.Length 
                            && _position + _mftRecordSizeInBytes <= _mftBoundaries[^1].end;
-    public int BufferSizeInRecords { get => _buffer.Length; set => SetBufferSize(value); }
+    /// <summary>
+    /// Buffer size in MFT records. Increasing the buffer size will reduce the amount of IO calls in sequential reading and will be faster.
+    /// You might want to set this value lower when you need to manually move the pointer often to reduce the amount of bytes
+    /// written everytime. Default size is 8
+    /// </summary>
+    public int BufferSize { get => _buffer.Length / _mftRecordSizeInBytes; set => SetBufferSize(value); }
+    /// <summary>
+    /// 0-based byte index
+    /// </summary>
     public long Position { get => _position; set => SetPosition(value); }
     
     private readonly SafeFileHandle _volumeHandle;
     private readonly (long start, long end)[] _mftBoundaries;
     private readonly int _mftRecordSizeInBytes;
 
-    private byte[] _randomReadBuffer;
+    private byte[] _randomReadBuffer; // use this small buffer to read single record and not allocate it every time
     private byte[] _buffer;
     private int _offsetInBuffer; // current offset in the buffer to read records from
     private int _validDataInBufferSize;
@@ -27,10 +41,10 @@ public class MftStream
     public MftStream(MasterFileTable mft, SafeFileHandle volumeHandle)
     {
         _volumeHandle = volumeHandle;
-        _mftBoundaries = GetMftBoundaries(mft.MftDataRuns, mft.ClusterByteSize);
-        _mftRecordSizeInBytes = mft.RecordByteSize;
+        _mftBoundaries = GetMftBoundaries(mft.MftDataRuns, mft.ClusterSize);
+        _mftRecordSizeInBytes = mft.RecordSize;
         _buffer = [];
-        _randomReadBuffer = new byte[mft.RecordByteSize];
+        _randomReadBuffer = new byte[mft.RecordSize];
         Position = _mftBoundaries[0].start;
         SetBufferSize(DefaultBufferSizeInRecords);
     }
@@ -60,6 +74,12 @@ public class MftStream
         _buffer = newBuffer;
     }
 
+    /// <summary>
+    /// Reads a single record at the specified position. Use when you need to read entries without moving the position and resetting the buffer
+    /// (e.g. when you need to read record's base record or a parent directory record of a file)
+    /// </summary>
+    /// <param name="position">0-based pointer</param>
+    /// <returns>Raw record</returns>
     public Span<byte> ReadRawRecordAt(long position)
     {
         _ = ValidatePosition(position);
@@ -67,6 +87,11 @@ public class MftStream
         return _randomReadBuffer.AsSpan();
     }
     
+    /// <summary>
+    /// Reads a raw record at the current position and moves forward
+    /// </summary>
+    /// <returns>Raw record</returns>
+    /// <exception cref="EndOfMftException">Tried to read past MFT</exception>
     public Span<byte> ReadRawRecord()
     {
         if (!CanRead)
@@ -167,6 +192,9 @@ public class MftStream
         return boundaries;
     }
 
+    /// <summary>
+    /// Invalidates the data in the buffer and forces to update the buffer on next read
+    /// </summary>
     public void InvalidateBuffer()
     {
         _validDataInBufferSize = 0;

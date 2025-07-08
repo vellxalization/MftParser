@@ -4,8 +4,8 @@
 /// Structure that describes physical layout of the volume
 /// </summary>
 /// <param name="TotalSectors">Total size of the volume</param>
-/// <param name="LogicalClusterForMft">Cluster number for $MFT meta file</param>
-/// <param name="LogicalClusterForMftMirr">Cluster number for $MFTMirr meta file</param>
+/// <param name="MftCluster">Cluster number of the $MFT meta file data</param>
+/// <param name="MftMirrCluster">Cluster number of the $MFTMirr meta file data</param>
 /// <param name="ClustersPerMftRecord">Number of clusters used per single MFT record. If this value is greater than 0, then it represents number of clusters.
 /// If it's negative, then use it's absolute value as a power of two to get record size in bytes.
 /// Typical value is 0xF6 (-10) meaning that we use 1024 bytes per single record.</param>
@@ -13,7 +13,7 @@
 /// If it's negative, then use it's absolute value as a power of two to get record size in bytes.
 /// Typical value is 1 meaning that we use single cluster (4096 bytes typically) per single record</param>
 /// <param name="VolumeSerialNumber">Unique volume id</param>
-public readonly record struct ExtendedBpb(long TotalSectors, long LogicalClusterForMft, long LogicalClusterForMftMirr, 
+public readonly record struct ExtendedBpb(long TotalSectors, long MftCluster, long MftMirrCluster, 
     sbyte ClustersPerMftRecord, sbyte ClustersPerIndexRecord, long VolumeSerialNumber)
 {
     public static ExtendedBpb Parse(Span<byte> rawExBpb)

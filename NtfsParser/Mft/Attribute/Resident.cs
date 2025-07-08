@@ -4,7 +4,7 @@
 /// Structure that describes the content of a resident attribute
 /// </summary>
 /// <param name="ContentSize">Size of the content in bytes</param>
-/// <param name="ContentOffset">Offset at which content starts</param>
+/// <param name="ContentOffset">Offset to the content from the start of the attribute in bytes</param>
 /// <param name="IndexedFlag"></param>
 public readonly record struct Resident(uint ContentSize, ushort ContentOffset, byte IndexedFlag)
 {

@@ -101,13 +101,13 @@ public readonly record struct MftAttribute(AttributeHeader Header, UnicodeName N
 /// Attribute's header
 /// </summary>
 /// <param name="Type">Type of the attribute, as defined in $AttrDef meta file</param>
-/// <param name="Size">Size of the attribute, including the header and content</param>
+/// <param name="Size">Size of the attribute, including the header and content, in bytes</param>
 /// <param name="IsNonresident">Is the attribute nonresident</param>
 /// <param name="NameSize">Size of the attribute's name in Unicode characters</param>
-/// <param name="NameOffset">Offset to the start of the attribute's name</param>
+/// <param name="NameOffset">Offset to the name from the start of the attribute</param>
 /// <param name="DataFlags">Attribute's flags</param>
 /// <param name="AttributeId">Attribute's ID</param>
-/// <param name="Resident">Contains data about resident content of the attribute. If the attribute is nonrsident, set to default</param>
+/// <param name="Resident">Contains data about resident content of the attribute. If the attribute is nonresident, set to default</param>
 /// <param name="Nonresident">Contains data about nonresident content of the attribute. If the attribute is resident, set to default</param>
 public readonly record struct AttributeHeader(AttributeType Type, uint Size, bool IsNonresident, byte NameSize,
     ushort NameOffset, AttributeHeaderFlags DataFlags, ushort AttributeId, Resident Resident, Nonresident Nonresident)
@@ -146,15 +146,15 @@ public readonly record struct AttributeHeader(AttributeType Type, uint Size, boo
 public enum AttributeHeaderFlags
 {
     /// <summary>
-    /// Set if the attribute's data is compressed. Should be only used in nonresident $Data attributes
+    /// File's data in compressed
     /// </summary>
     IsCompressed = 0x0001,
     /// <summary>
-    /// Set if the attribute's data is encrypted
+    /// File's data is encrypted
     /// </summary>
     IsEncrypted = 0x4000,
     /// <summary>
-    /// Set if the attribute's data contains sparse blocks
+    /// File is marked as sparse. This flag, however, doesn't guarantee that the file will contain sparse blocks
     /// </summary>
     IsSparse = 0x8000
 }

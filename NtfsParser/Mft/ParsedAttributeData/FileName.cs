@@ -3,12 +3,12 @@
 namespace NtfsParser.Mft.ParsedAttributeData;
 
 /// <summary>
-/// An attribute that stores the file's name
+/// An attribute that stores the file's name. Single file can have multiple FILE_NAMEs because of how hard link are implemented in NTFS
 /// </summary>
-/// <param name="ReferenceToParentDirectory">Reference to the directory record where the file is stored</param>
+/// <param name="ParentDirectory">Reference to the directory record where the file is stored</param>
 /// <param name="FileCreated">The time when the file was created</param>
 /// <param name="FileAltered">The time when the file was last changed.
-/// This value is updated only when this attribute is updated, meaning there is a high chance that it's out-of-date.
+/// This value is updated only when THIS attribute is updated, meaning there is a high chance that it's out-of-date.
 /// Please refer to the STANDARD_INFORMATION attribute to get up-to-date time</param>
 /// <param name="MftChanged">The time when the file's MFT record was changed.
 /// This value is updated only when this attribute is updated, meaning there is a high chance that it's out-of-date.
@@ -16,18 +16,20 @@ namespace NtfsParser.Mft.ParsedAttributeData;
 /// <param name="FileRead">The time when the file was last read.
 /// This value is updated only when this attribute is updated, meaning there is a high chance that it's out-of-date.
 /// Please refer to the STANDARD_INFORMATION attribute to get up-to-date time</param>
-/// <param name="AllocatedSizeByte">Total size of all clusters.
+/// <param name="AllocatedSize">Total size of all clusters used by the file in bytes.
 /// Because NTFS can only allocate data in clusters, this value is a multiple of the cluster size</param>
-/// <param name="ActualSizeByte">Actual size of the data stored</param>
+/// <param name="ActualSize">Actual size of the data stored in bytes</param>
 /// <param name="Flags"></param>
-/// <param name="ExtendedData">Used by extended attributes and reparse points.
+/// <param name="ExtendedData">Used by extended attributes and reparse points*
 /// If the file have extended attributes, then this field is equal to the size of the attributes.
-/// If the file has reparse point flag, then this value is a reparse tag</param>
+/// If the file has reparse point flag, then this value is a reparse tag.
+/// * Referring to https://flatcap.github.io/linux-ntfs/ntfs/attributes/file_name.html;
+/// However, couldn't confirm this during testing</param>
 /// <param name="FilenameLength">Length of the name in Unicode characters</param>
 /// <param name="FilenameNamespace">Namespace of the name</param>
 /// <param name="Name">File's name</param>
-public readonly record struct FileName(FileReference ReferenceToParentDirectory, FileTime FileCreated, FileTime FileAltered,
-    FileTime MftChanged, FileTime FileRead, ulong AllocatedSizeByte, ulong ActualSizeByte, FileNameFlags Flags, uint ExtendedData,
+public readonly record struct FileName(FileReference ParentDirectory, FileTime FileCreated, FileTime FileAltered,
+    FileTime MftChanged, FileTime FileRead, ulong AllocatedSize, ulong ActualSize, FileNameFlags Flags, uint ExtendedData,
     byte FilenameLength, FnNamespace FilenameNamespace, UnicodeName Name)
 {
     public static FileName CreateFromRawData(in RawAttributeData rawData)

@@ -3,7 +3,8 @@
 namespace NtfsParser.Mft.ParsedAttributeData.ReparsePoint;
 
 /// <summary>
-/// An attribute that represents reparse file
+/// An attribute that represents reparse point. Reparse points can store any user-defined data.
+/// The format of the data is specified in the tag. Symbolic links and junctions both use reparse points mechanism
 /// </summary>
 /// <param name="ReparseTag">Tag</param>
 /// <param name="DataSize">Size of the content</param>

@@ -3,11 +3,11 @@
 namespace NtfsParser.Mft.ParsedAttributeData;
 
 /// <summary>
-/// Standard information attribute's data
+/// Standard information attribute's data. Always resident and is present in every base record
 /// </summary>
 /// <param name="FileCreated">The time when the file was created</param>
 /// <param name="FileAltered">The time when the file was last changed</param>
-/// <param name="MftChanged">The time when the file's MFT record was changed</param>
+/// <param name="MftChanged">The time when the file's MFT record was changed. Not shown by Windows in file's properties</param>
 /// <param name="FileRead">The time when the file was last read</param>
 /// <param name="DosAttributes">DOS attributes flags</param>
 /// <param name="MaxVersions">Maximum number of versions.
@@ -19,8 +19,8 @@ namespace NtfsParser.Mft.ParsedAttributeData;
 /// <param name="ClassId">Class ID for "bidirectional ID index" (https://flatcap.github.io/linux-ntfs/ntfs/attributes/standard_information.html).
 /// Every tested record had a value set to 0</param>
 /// <param name="OwnerId">ID of the owner. Used by quota's $O and $Q indices. Zero means quotas are disabled</param>
-/// <param name="SecurityId">Security ID (not Windows SID). Used by security's $SDH and $SII indices</param>
-/// <param name="QuotaCharged">Number of bytes that a file contributes to the user's quota. Zero means quotas are disabled</param>
+/// <param name="SecurityId">Security ID (not Windows SID). Index of a corresponding entry inside $SII and $SDH indices</param>
+/// <param name="QuotaCharged">Number of bytes that the file contributes to the user's quota. Zero means quotas are disabled</param>
 /// <param name="UpdateSequenceNumber">Last update sequence number of the file. Used by USN journal. Zero means USN journal is disabled</param>
 public readonly record struct StandardInformation(FileTime FileCreated, FileTime FileAltered, FileTime MftChanged, FileTime FileRead, 
     DosAttributes DosAttributes, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 

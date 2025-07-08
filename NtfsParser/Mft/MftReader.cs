@@ -2,10 +2,24 @@
 
 namespace NtfsParser.Mft;
 
+/// <summary>
+/// A wrapper for the MftStream class. Use this to read MFT records from the MFT
+/// </summary>
 public class MftReader
 {
+    /// <summary>
+    /// Is there still any remaining data in the stream
+    /// </summary>
     public bool CanRead => _stream.CanRead;
-    public int BufferSizeInRecords { get => _stream.BufferSizeInRecords; set => _stream.BufferSizeInRecords = value; }
+    /// <summary>
+    /// Stream's buffer size in MFT records. Increasing the buffer size will reduce the amount of IO calls in sequential reading and will be faster.
+    /// You might want to set this value lower when you need to manually move the pointer often to reduce the amount of bytes
+    /// written everytime. Default size is 8
+    /// </summary>
+    public int BufferSize { get => _stream.BufferSize; set => _stream.BufferSize = value; }
+    /// <summary>
+    /// Current 0-based MFT index
+    /// </summary>
     public int MftIndex { get => _mftIndex; set => SetMftIndex(value); }
     private int _mftIndex; // global 0-based index of the current mft record
     
@@ -40,35 +54,50 @@ public class MftReader
             if (run.IsSparse)
                 continue;
 
-            position += run.Offset * _mft.ClusterByteSize;
-            var runLengthInRecords = (int)run.Length * _mft.ClusterByteSize / _mft.RecordByteSize;
+            position += run.Offset * _mft.ClusterSize;
+            var runLengthInRecords = (int)run.Length * _mft.ClusterSize / _mft.RecordSize;
             mftIndex -= runLengthInRecords;
             if (mftIndex >= 0)
                 continue;
             
-            position += (runLengthInRecords - -mftIndex) * _mft.RecordByteSize;
+            position += (runLengthInRecords - -mftIndex) * _mft.RecordSize;
             return position;
         }
         
         return -1;
     }
     
+    /// <summary>
+    /// Reads a single record at the specified index. Use when you need to read entries without moving the index and resetting the buffer
+    /// (e.g. when you need to read record's base record or a parent directory record of a file)
+    /// </summary>
+    /// <param name="mftIndex">0-based index of a record</param>
+    /// <returns>Parsed record</returns>
     public MftRecord RandomReadAt(int mftIndex)
     {
         var position = MftIndexToStreamOffset(mftIndex);
         var rawRecord = _stream.ReadRawRecordAt(position);
-        var parsed = MftRecord.Parse(rawRecord, _mft.SectorByteSize);
+        var parsed = MftRecord.Parse(rawRecord, _mft.SectorSize);
         return parsed;
     }
     
+    /// <summary>
+    /// Reads single record at the index and moves forward
+    /// </summary>
+    /// <returns>Parsed record</returns>
     public MftRecord ReadMftRecord()
     {
         var record = _stream.ReadRawRecord();
-        var parsed = MftRecord.Parse(record, _mft.SectorByteSize);
+        var parsed = MftRecord.Parse(record, _mft.SectorSize);
         ++_mftIndex;
         return parsed;
     }
-
+    
+    /// <summary>
+    /// Creates an iterator that allows to iterate all records 
+    /// </summary>
+    /// <param name="options">An object that contains simple filter to ignore specific records</param>
+    /// <returns>Iterator</returns>
     public IEnumerable<MftRecord> StartReadingMft(MftIteratorOptions? options = null)
     {
         var ignoreEmpty = options?.IgnoreEmpty ?? false;

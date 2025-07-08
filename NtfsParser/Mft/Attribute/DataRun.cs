@@ -1,5 +1,16 @@
 ﻿namespace NtfsParser.Mft.Attribute;
 
+/// <summary>
+/// A struct that describes a single data run. Nonresident attributes store their data outside their MFT record.
+/// An array of data runs is used to describe the location of a nonresident attribute data.
+/// Single data runs consists of a single-byte header, followed by a length value and an offset value.
+/// The length of both values can vary and is stored in the header
+/// (first four least significant bits of the header show the length of the length value, next four - the length of the offset value, both in bytes) 
+/// </summary>
+/// <param name="Length">The amount of consecutive clusters taken by the data run</param>
+/// <param name="Offset">Cluster number offset of the data run relative to the previous one in the list. Can be negative.
+/// First run's data will be located at the offset; while the rest should add their offset to the previous one</param>
+/// <param name="IsSparse">If set, the block isn't allocated on the disk and should be treated as zeroes</param>
 public readonly record struct DataRun(long Length, long Offset, bool IsSparse)
 {
     public static DataRun[] ParseDataRuns(byte[] rawDataRuns)

@@ -6,7 +6,7 @@ namespace NtfsParser.Mft.ParsedAttributeData.Index;
 /// An attribute that represents an index tree root. Is a single node in an index tree. Always present in records that are part of an index
 /// </summary>
 /// <param name="RootHeader">Header with information about index</param>
-/// <param name="NodeHeader">Header of a node</param>
+/// <param name="NodeHeader">Header of an index node</param>
 /// <param name="Entries">Index entries</param>
 public readonly record struct IndexRoot(IndexRootHeader RootHeader, IndexNodeHeader NodeHeader, IndexEntry[] Entries)
 {
@@ -34,11 +34,11 @@ public readonly record struct IndexRoot(IndexRootHeader RootHeader, IndexNodeHea
 /// Header of an index root node
 /// </summary>
 /// <param name="AttributeType">Type of the attribute that is store in index records. 0 means that the stored data is not an attribute</param>
-/// <param name="CollationRule">How records are sorted</param>
-/// <param name="IndexRecordByteSize">Size of a single index records in bytes. Typically, is set to 4096</param>
-/// <param name="IndexRecordClusterSize">Size of a single index record in clusters. Typically, is set to 1</param>
-public record struct IndexRootHeader(AttributeType AttributeType, CollationRule CollationRule, uint IndexRecordByteSize,
-    byte IndexRecordClusterSize)
+/// <param name="CollationRule">How records are stored and sorted in the tree</param>
+/// <param name="IndexRecordSize">Size of a single index records in bytes</param>
+/// <param name="IndexRecordSizeCluster">Size of a single index record in clusters. Same as the value in the $Boot meta file</param>
+public record struct IndexRootHeader(AttributeType AttributeType, CollationRule CollationRule, uint IndexRecordSize,
+    byte IndexRecordSizeCluster)
 {
     public static IndexRootHeader Parse(Span<byte> rawHeader)
     {
@@ -53,13 +53,37 @@ public record struct IndexRootHeader(AttributeType AttributeType, CollationRule 
     }
 }
 
+/// <summary>
+/// Sorting rules for the index
+/// </summary>
 public enum CollationRule : uint
 {
+    /// <summary>
+    /// Byte by byte comparison; first byte is the most significant 
+    /// </summary>
     Binary = 0x00000000,
+    /// <summary>
+    /// Case-insensitive UNICODE string
+    /// </summary>
     Filename = 0x00000001,
+    /// <summary>
+    /// Case-sensitive UNICODE string
+    /// </summary>
     UnicodeString = 0x00000002,
+    /// <summary>
+    /// Unsigned 32-bit little-endian
+    /// </summary>
     NtofsUlong = 0x00000010,
+    /// <summary>
+    /// Security identifier
+    /// </summary>
     NtofsSid = 0x00000011,
+    /// <summary>
+    /// Security hash first, then security identifier
+    /// </summary>
     NtofsSecurityHash = 0x00000012,
+    /// <summary>
+    /// Array of unsigned 32-bit little endian values
+    /// </summary>
     NtofsUlongs = 0x00000013
 }

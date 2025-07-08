@@ -3,11 +3,11 @@
 /// <summary>
 /// List of access entries that identify a trustee and specifies access rights for the trustee
 /// </summary>
-/// <param name="Revision">Revision level of the list. All entries should have the same revision as this</param>
-/// <param name="ListSizeInBytes">Size of the list in bytes</param>
+/// <param name="Revision">Revision level of the list</param>
+/// <param name="ListSize">Size of the list in bytes</param>
 /// <param name="EntriesCount">Number of entries stored in the list</param>
 /// <param name="Entries">Entries</param>
-public readonly record struct AccessControlList(byte Revision, ushort ListSizeInBytes, ushort EntriesCount, AccessControlEntry[] Entries)
+public readonly record struct AccessControlList(byte Revision, ushort ListSize, ushort EntriesCount, AccessControlEntry[] Entries)
 {
     public static AccessControlList Parse(Span<byte> rawAcl)
     {
@@ -22,9 +22,7 @@ public readonly record struct AccessControlList(byte Revision, ushort ListSizeIn
         {
             var entry = AccessControlEntry.CreateFromStream(ref reader);
             entries[i] = entry;
-            Console.WriteLine(entry.AccessMask);
         }
-        Console.Clear();
         
         return new AccessControlList(revision, listSize, entriesCount, entries); 
     }

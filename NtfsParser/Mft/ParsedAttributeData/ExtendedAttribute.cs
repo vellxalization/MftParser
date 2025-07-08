@@ -3,7 +3,7 @@
 namespace NtfsParser.Mft.ParsedAttributeData;
 
 /// <summary>
-/// A collection of extended attributes entries
+/// A collection of extended attributes entries. Used to support HPFS within NTFS
 /// </summary>
 /// <param name="Entries">A collection of key-value pairs</param>
 public readonly record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries)
@@ -27,12 +27,13 @@ public readonly record struct ExtendedAttribute(ExtendedAttributeEntry[] Entries
 /// Single key-value pair of an extended attribute
 /// </summary>
 /// <param name="EntrySize">Size of the entry</param>
-/// <param name="NeedEa"></param>
-/// <param name="CharNameLength">Size of the key in ASCII characters</param>
-/// <param name="ValueSize">Size of the value in ASCII characters</param>
+/// <param name="NeedEa">If true, file's data cannot be interpreted without understanding the extended attributes.
+/// https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_file_full_ea_information</param>
+/// <param name="NameLength">Size of the key in ASCII characters</param>
+/// <param name="ValueSize">Size of the value in bytes</param>
 /// <param name="Name">Name of the attribute (the key)</param>
-/// <param name="Value">Value of the attrubite</param>
-public readonly record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte CharNameLength, short ValueSize,
+/// <param name="Value">Value of the attribute</param>
+public readonly record struct ExtendedAttributeEntry(uint EntrySize, bool NeedEa, byte NameLength, short ValueSize,
     AsciiName Name, byte[] Value)
 {
     public static ExtendedAttributeEntry Parse(Span<byte> rawEntry)

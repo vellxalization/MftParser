@@ -2,19 +2,34 @@
 
 namespace NtfsParser.Mft.Decompression;
 
+/// <summary>
+/// A struct that represents compressed data
+/// </summary>
 public readonly struct CompressedData
 {
+    /// <summary>
+    /// Raw compressed data
+    /// </summary>
     public byte[] Data { get; init; }
+    /// <summary>
+    /// Compression units
+    /// </summary>
     public CompressionUnit[] CompressionUnits { get; init; }
-    public int CompressionUnitSizeCluster { get; init; }
-    public int ClusterSizeByte { get; init; }
+    /// <summary>
+    /// Size of a single compression unit in clusters
+    /// </summary>
+    public int CompressionUnitSize { get; init; }
+    /// <summary>
+    /// Size of a single cluster in bytes
+    /// </summary>
+    public int ClusterSize { get; init; }
 
-    public CompressedData(byte[] data, DataRun[] dataRuns, int compressionUnitSizeCluster, int clusterSizeByte)
+    public CompressedData(byte[] data, DataRun[] dataRuns, int compressionUnitSize, int clusterSize)
     {
-        CompressionUnitSizeCluster = compressionUnitSizeCluster;
-        ClusterSizeByte = clusterSizeByte;
+        CompressionUnitSize = compressionUnitSize;
+        ClusterSize = clusterSize;
         Data = data;
-        CompressionUnits = MapDataRuns(dataRuns, compressionUnitSizeCluster, clusterSizeByte);
+        CompressionUnits = MapDataRuns(dataRuns, compressionUnitSize, clusterSize);
     }
 
     private CompressionUnit[] MapDataRuns(DataRun[] dataRuns, int compressionUnitSizeCluster, int clusterSizeByte)
