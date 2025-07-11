@@ -29,7 +29,7 @@ namespace NtfsParser.Mft.ParsedAttributeData;
 /// <param name="FilenameNamespace">Namespace of the name</param>
 /// <param name="Name">File's name</param>
 public readonly record struct FileName(FileReference ParentDirectory, FileTime FileCreated, FileTime FileAltered,
-    FileTime MftChanged, FileTime FileRead, ulong AllocatedSize, ulong ActualSize, FileNameFlags Flags, uint ExtendedData,
+    FileTime MftChanged, FileTime FileRead, ulong AllocatedSize, ulong ActualSize, FileAttributes Flags, uint ExtendedData,
     byte FilenameLength, FnNamespace FilenameNamespace, UnicodeName Name)
 {
     public static FileName CreateFromRawData(in RawAttributeData rawData)
@@ -51,29 +51,9 @@ public readonly record struct FileName(FileReference ParentDirectory, FileTime F
         
         return new FileName(referenceToParentDirectory, new FileTime((long)fileCreated), 
             new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
-            new FileTime((long)fileRead), allocatedFileSize, realFileSize, (FileNameFlags)flags, extendedData,
+            new FileTime((long)fileRead), allocatedFileSize, realFileSize, (FileAttributes)flags, extendedData,
             filenameLength, (FnNamespace)filenameNamespace, new UnicodeName(filename.ToArray()));
     }
-}
-
-[Flags]
-public enum FileNameFlags : uint
-{
-    ReadOnly = 0x0001,
-    Hidden = 0x0002,
-    System = 0x0004,
-    Archive = 0x0020,
-    Device = 0x0040,
-    Normal = 0x0080,
-    Temporary = 0x00100,
-    SparseFile = 0x00200,
-    ReparsePoint = 0x00400,
-    Compressed = 0x00800,
-    Offline = 0x01000,
-    NotContentIndexed = 0x02000,
-    Encrypted = 0x04000,
-    Directory = 0x10000000,
-    IndexView = 0x20000000
 }
 
 public enum FnNamespace

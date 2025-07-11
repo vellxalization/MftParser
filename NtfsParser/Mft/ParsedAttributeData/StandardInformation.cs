@@ -23,7 +23,7 @@ namespace NtfsParser.Mft.ParsedAttributeData;
 /// <param name="QuotaCharged">Number of bytes that the file contributes to the user's quota. Zero means quotas are disabled</param>
 /// <param name="UpdateSequenceNumber">Last update sequence number of the file. Used by USN journal. Zero means USN journal is disabled</param>
 public readonly record struct StandardInformation(FileTime FileCreated, FileTime FileAltered, FileTime MftChanged, FileTime FileRead, 
-    DosAttributes DosAttributes, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 
+    FileAttributes DosAttributes, uint MaxVersions, uint VersionNumber, uint ClassId, uint OwnerId, uint SecurityId, 
     ulong QuotaCharged, ulong UpdateSequenceNumber)
 {
     public static StandardInformation CreateFromRawData(in RawAttributeData rawData)
@@ -41,7 +41,7 @@ public readonly record struct StandardInformation(FileTime FileCreated, FileTime
         if (rawData.Data.Length <= 48)
             return new StandardInformation(new FileTime((long)fileCreated), 
                 new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
-                new FileTime((long)fileRead), (DosAttributes)dosAttributes, maxVersions, versionNumber,
+                new FileTime((long)fileRead), (FileAttributes)dosAttributes, maxVersions, versionNumber,
                 classId, 0, 0, 0, 0);
         
         var ownerId = reader.ReadUInt32();
@@ -51,27 +51,7 @@ public readonly record struct StandardInformation(FileTime FileCreated, FileTime
         
         return new StandardInformation(new FileTime((long)fileCreated), 
             new FileTime((long)fileAltered), new FileTime((long)mftChanged), 
-            new FileTime((long)fileAltered), (DosAttributes)dosAttributes, maxVersions, versionNumber,
+            new FileTime((long)fileAltered), (FileAttributes)dosAttributes, maxVersions, versionNumber,
             classId, ownerId, securityId, quotaCharged, updateSequenceNumber);
     }
-}
-
-[Flags]
-public enum DosAttributes : uint
-{
-    ReadOnly = 0x0001,
-    Hidden = 0x0002,
-    System = 0x0004,
-    Archive = 0x0020,
-    Device = 0x0040,
-    Normal = 0x0080,
-    Temporary = 0x00100,
-    SparseFile = 0x00200,
-    ReparsePoint = 0x00400,
-    Compressed = 0x00800,
-    Offline = 0x01000,
-    NotContentIndexed = 0x02000,
-    Encrypted = 0x04000,
-    Directory = 0x10000000,
-    IndexView = 0x20000000
 }
