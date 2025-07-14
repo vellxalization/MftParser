@@ -1,4 +1,6 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Win32.SafeHandles;
+using NtfsParser.Mft.Attribute;
 
 namespace NtfsParser.Mft;
 
@@ -23,13 +25,19 @@ public class MftReader
     public int MftIndex { get => _mftIndex; set => SetMftIndex(value); }
     private int _mftIndex; // global 0-based index of the current mft record
     
-    private readonly MasterFileTable _mft;
     private readonly MftStream _stream;
+    private readonly ReadOnlyCollection<DataRun> _mftRuns;
+    private readonly int _sectorSize;
+    private readonly int _clusterSize;
+    private readonly int _mftRecordSize;
     
-    public MftReader(MasterFileTable mft, SafeFileHandle fileHandle)
+    public MftReader(MasterFileTable mft, MftStream stream)
     {
-        _mft = mft;
-        _stream = new MftStream(mft, fileHandle);
+        _stream = stream;
+        _sectorSize = mft.SectorSize;
+        _mftRecordSize = mft.RecordSize;
+        _clusterSize = mft.ClusterSize;
+        _mftRuns = mft.MftDataRuns;
         MftIndex = 0;
     }
 
@@ -49,18 +57,18 @@ public class MftReader
             throw new ArgumentException("Index should be greater than 0");
         
         var position = 0L;
-        foreach (var run in _mft.MftDataRuns)
+        foreach (var run in _mftRuns)
         {
             if (run.IsSparse)
                 continue;
 
-            position += run.Offset * _mft.ClusterSize;
-            var runLengthInRecords = (int)run.Length * _mft.ClusterSize / _mft.RecordSize;
+            position += run.Offset * _clusterSize;
+            var runLengthInRecords = (int)run.Length * _clusterSize / _mftRecordSize;
             mftIndex -= runLengthInRecords;
             if (mftIndex >= 0)
                 continue;
             
-            position += (runLengthInRecords - -mftIndex) * _mft.RecordSize;
+            position += (runLengthInRecords - -mftIndex) * _mftRecordSize;
             return position;
         }
         
@@ -77,7 +85,7 @@ public class MftReader
     {
         var position = MftIndexToStreamOffset(mftIndex);
         var rawRecord = _stream.ReadRawRecordAt(position);
-        var parsed = MftRecord.Parse(rawRecord, _mft.SectorSize);
+        var parsed = MftRecord.Parse(rawRecord, _sectorSize);
         return parsed;
     }
     
@@ -88,7 +96,7 @@ public class MftReader
     public MftRecord ReadMftRecord()
     {
         var record = _stream.ReadRawRecord();
-        var parsed = MftRecord.Parse(record, _mft.SectorSize);
+        var parsed = MftRecord.Parse(record, _sectorSize);
         ++_mftIndex;
         return parsed;
     }

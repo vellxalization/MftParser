@@ -25,14 +25,19 @@ public class RawVolume : IDisposable
     /// Data reader
     /// </summary>
     public VolumeDataReader VolumeReader { get; }
+    /// <summary>
+    /// Volume's letter
+    /// </summary>
+    public char VolumeLetter { get; }
     
-    public readonly SafeFileHandle VolumeHandle;
+    private readonly SafeFileHandle _volumeHandle;
 
     public RawVolume(char volumeLetter)
     {
         var fileHandle = OpenFile($@"\\.\{volumeLetter}:");
-        VolumeHandle = fileHandle;
-        var dataReaderStream = new FileStream(VolumeHandle, FileAccess.Read); // will be reused in data reader
+        VolumeLetter = volumeLetter;
+        _volumeHandle = fileHandle;
+        var dataReaderStream = new FileStream(_volumeHandle, FileAccess.Read); // will be reused in data reader
         
         var bootSector = ReadBootSector(dataReaderStream);
         BootSector = bootSector;
@@ -50,7 +55,7 @@ public class RawVolume : IDisposable
         var mftFile = ReadMftFile(volumeStream);
         var dataAttribute = mftFile.Attributes.First(attribute => attribute.Header.Type == AttributeType.Data);
         var dataRuns = DataRun.ParseDataRuns(dataAttribute.Value);
-        var mft = new MasterFileTable(BootSector.MftRecordSize, BootSector.SectorSize, BootSector.ClusterSize, VolumeHandle, dataRuns);
+        var mft = new MasterFileTable(BootSector.MftRecordSize, BootSector.SectorSize, BootSector.ClusterSize, dataRuns, _volumeHandle);
         
         return mft;
     }
@@ -88,7 +93,7 @@ public class RawVolume : IDisposable
 
     public void Dispose()
     {
-        VolumeHandle.Dispose();
+        _volumeHandle.Dispose();
     }
 }
 public class InvalidHandleException() : Exception("File handle is invalid"); // TODO: i should put this somewhere

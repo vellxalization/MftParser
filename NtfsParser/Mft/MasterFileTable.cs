@@ -9,6 +9,9 @@ namespace NtfsParser.Mft;
 /// </summary>
 public readonly struct MasterFileTable
 {
+    /// <summary>
+    /// Mft reader
+    /// </summary>
     public MftReader Reader { get; }
     /// <summary>
     /// Size of a single MFT record in bytes
@@ -27,12 +30,13 @@ public readonly struct MasterFileTable
     /// </summary>
     public ReadOnlyCollection<DataRun> MftDataRuns { get; }
     
-    public MasterFileTable(int recordSize, int sectorSize, int clusterSize, SafeFileHandle handle, DataRun[] mftDataRuns)
+    public MasterFileTable(int recordSize, int sectorSize, int clusterSize, DataRun[] mftDataRuns, SafeFileHandle handle)
     {
         SectorSize = sectorSize;
         ClusterSize = clusterSize;
         RecordSize = recordSize;
         MftDataRuns = new(mftDataRuns);
-        Reader = new MftReader(this, handle);
+        var mftStream = new MftStream(this, handle);
+        Reader = mftStream.Reader;
     }
 }

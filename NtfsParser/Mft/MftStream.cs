@@ -25,12 +25,16 @@ public class MftStream
     /// 0-based byte index
     /// </summary>
     public long Position { get => _position; set => SetPosition(value); }
-    
+    /// <summary>
+    /// MFT reader
+    /// </summary>
+    public MftReader Reader { get; }
+
     private readonly SafeFileHandle _volumeHandle;
     private readonly (long start, long end)[] _mftBoundaries;
     private readonly int _mftRecordSizeInBytes;
 
-    private byte[] _randomReadBuffer; // use this small buffer to read single record and not allocate it every time
+    private readonly byte[] _randomReadBuffer; // use this small buffer to read single record and not allocate it every time
     private byte[] _buffer;
     private int _offsetInBuffer; // current offset in the buffer to read records from
     private int _validDataInBufferSize;
@@ -47,6 +51,7 @@ public class MftStream
         _randomReadBuffer = new byte[mft.RecordSize];
         Position = _mftBoundaries[0].start;
         SetBufferSize(DefaultBufferSizeInRecords);
+        Reader = new MftReader(mft, this);
     }
     
     private void SetBufferSize(int sizeInRecords)
