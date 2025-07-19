@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using NtfsParser;
-using NtfsParser.Mft.ParsedAttributeData;
-using FileAttributes = NtfsParser.Mft.ParsedAttributeData.FileAttributes;
+using MftParser;
+using MftParser.Mft.ParsedAttributeData;
+using FileAttributes = MftParser.Mft.ParsedAttributeData.FileAttributes;
 
 if (args.Length == 0 || !char.TryParse(args[0], out var letter))
 {

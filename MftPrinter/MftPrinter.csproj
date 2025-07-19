@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NtfsParser\NtfsParser.csproj" />
+      <ProjectReference Include="..\MftParser\MftParser.csproj" />
     </ItemGroup>
 
 </Project>

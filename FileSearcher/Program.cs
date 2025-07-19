@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using FileSearcher;
-using NtfsParser;
+using MftParser;
 
 if (args.Length < 2)
 {

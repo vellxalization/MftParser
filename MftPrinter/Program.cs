@@ -1,6 +1,6 @@
-﻿using NtfsParser;
-using NtfsParser.Mft;
-using NtfsParser.Mft.Attribute;
+﻿using MftParser;
+using MftParser.Mft;
+using MftParser.Mft.Attribute;
 
 if (args.Length < 1)
 {
@@ -34,9 +34,10 @@ if (args.Contains("--empty"))
 var iteratorOptions = new MftIteratorOptions()
 {
     IgnoreEmpty = ignoreEmpty, 
-    IgnoreUnused = ignoreUnused 
+    IgnoreUnused = ignoreUnused,
 };
 var mftReader = volume.MftReader;
+mftReader.BufferSize = 256; // because we're reading sequentially, we can increase the buffer size to reduce the amount of IO operations
 foreach (var mftRecord in mftReader.StartReadingMft(iteratorOptions))
 {
     var index = mftReader.MftIndex - 1;

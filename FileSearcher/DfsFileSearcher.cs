@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using NtfsParser;
-using NtfsParser.Mft;
-using NtfsParser.Mft.Attribute;
-using NtfsParser.Mft.ParsedAttributeData;
-using NtfsParser.Mft.ParsedAttributeData.Index;
-using FileAttributes = NtfsParser.Mft.ParsedAttributeData.FileAttributes;
+using MftParser;
+using MftParser.Mft;
+using MftParser.Mft.Attribute;
+using MftParser.Mft.ParsedAttributeData;
+using MftParser.Mft.ParsedAttributeData.Index;
+using FileAttributes = MftParser.Mft.ParsedAttributeData.FileAttributes;
 
 namespace FileSearcher;
 
