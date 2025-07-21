@@ -55,7 +55,7 @@ public readonly struct CompressedData
         DataRun? SparseScenario()
         {
             if (run.Length < compressionUnitSizeCluster)
-                throw new Exception("Compression unit shouldn't start with a sparse block");
+                throw new DecompressionException();
             
             units[unitIndex++] = CompressionUnit.SparseUnit;
             return run.Length == compressionUnitSizeCluster ? null : run with { Length = run.Length - compressionUnitSizeCluster };
@@ -86,7 +86,7 @@ public readonly struct CompressedData
                 if (run.IsSparse)
                 {
                     if (dataLength + run.Length < compressionUnitSizeCluster && runIndex < dataRuns.Length - 1)
-                        throw new Exception("Compression unit shouldn't start with a sparse block");
+                        throw new DecompressionException();
 
                     isCompressed = true;
                     returnValue = dataLength + run.Length > compressionUnitSizeCluster 
