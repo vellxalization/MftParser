@@ -21,8 +21,8 @@ public class LogicalStringComparer : IComparer<string>
         var lim = Math.Min(xSpan.Length, ySpan.Length);
         for (var i = 0; i < lim; i++)
         {
-            var xChar = xSpan[i];
-            var yChar = ySpan[i];
+            var xChar = char.ToLower(xSpan[i]);
+            var yChar = char.ToLower(ySpan[i]);
             if (xChar == yChar)
                 continue;
             
@@ -35,8 +35,8 @@ public class LogicalStringComparer : IComparer<string>
                 return 1;
             
             if (!xIsDigit && !yIsDigit)
-                return char.ToLower(xChar) < char.ToLower(yChar) ? -1 : 1;
-
+                return xChar.CompareTo(yChar);
+            
             var xNum = SelectNumber(xSpan[i..]);
             var yNum = SelectNumber(ySpan[i..]);
             return BigInteger.Parse(xNum) < BigInteger.Parse(yNum) ? -1 : 1; // because file name might just be a bunch of number, use big int to avoid overflowing
