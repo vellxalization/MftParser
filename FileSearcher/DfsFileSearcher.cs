@@ -21,7 +21,7 @@ public class DfsFileSearcher : IDisposable
     public DfsFileSearcher(RawVolume volume)
     {
         var sectorSize = volume.BootSector.SectorSize;
-        var indexRecordSize = volume.BootSector.IndexRecordSize;
+        var indexRecordSize = volume.BootSector.IndexRecordSizeInBytes;
         _volume = volume;
         _sectorSize = sectorSize;
         _indexRecordSize = indexRecordSize;
@@ -33,7 +33,7 @@ public class DfsFileSearcher : IDisposable
     public void FindSingleMatch(string name)
     {
         var nameBytes = Encoding.Unicode.GetBytes(name);
-        (MftRecord root, int rootIndex) root;
+        (MftRecord root, long rootIndex) root;
         try
         {
             root = GetRootDirectory();
@@ -53,7 +53,7 @@ public class DfsFileSearcher : IDisposable
         SearchRoutineSingle(root.root, root.rootIndex, nameBytes, path);
     }
     
-    private bool SearchRoutineSingle(in MftRecord startingPoint, int recordMftIndex, byte[] name, Stack<FileName> path)
+    private bool SearchRoutineSingle(in MftRecord startingPoint, long recordMftIndex, byte[] name, Stack<FileName> path)
     {
         Debug.Assert((startingPoint.RecordHeader.EntryFlags & MftRecordHeaderFlags.IsDirectory) != 0);
 
@@ -80,8 +80,8 @@ public class DfsFileSearcher : IDisposable
 
             path.Push(fn);
             var baseRecordReference = FileReference.Parse(entry.RawStructure);
-            var baseRecord = _mftReader.RandomReadAt((int)baseRecordReference.MftIndex);
-            var subfolderSearch = SearchRoutineSingle(baseRecord, (int)baseRecordReference.MftIndex, name, path);
+            var baseRecord = _mftReader.RandomReadAt(baseRecordReference.MftIndex);
+            var subfolderSearch = SearchRoutineSingle(baseRecord, baseRecordReference.MftIndex, name, path);
             if (subfolderSearch)
                 return true;
             _ = path.Pop();
@@ -106,8 +106,8 @@ public class DfsFileSearcher : IDisposable
                 
                 path.Push(fn);
                 var baseRecordReference = FileReference.Parse(entry.RawStructure);
-                var baseRecord = _mftReader.RandomReadAt((int)baseRecordReference.MftIndex);
-                var subfolderSearch = SearchRoutineSingle(baseRecord, (int)baseRecordReference.MftIndex, name, path);
+                var baseRecord = _mftReader.RandomReadAt(baseRecordReference.MftIndex);
+                var subfolderSearch = SearchRoutineSingle(baseRecord, baseRecordReference.MftIndex, name, path);
                 if (subfolderSearch)
                     return true;
                 _ = path.Pop();
@@ -120,7 +120,7 @@ public class DfsFileSearcher : IDisposable
     public void FindMultiple(string name)
     {
         var nameBytes = Encoding.Unicode.GetBytes(name);
-        (MftRecord root, int rootIndex) root;
+        (MftRecord root, long rootIndex) root;
         try
         {
             root = GetRootDirectory();
@@ -140,7 +140,7 @@ public class DfsFileSearcher : IDisposable
         SearchRoutineMultiple(root.root, root.rootIndex, nameBytes, path);
     }
     
-    private void SearchRoutineMultiple(in MftRecord startingPoint, int recordMftIndex, byte[] name, Stack<FileName> path)
+    private void SearchRoutineMultiple(in MftRecord startingPoint, long recordMftIndex, byte[] name, Stack<FileName> path)
     {
         Debug.Assert((startingPoint.RecordHeader.EntryFlags & MftRecordHeaderFlags.IsDirectory) != 0);
         
@@ -166,8 +166,8 @@ public class DfsFileSearcher : IDisposable
             
             path.Push(fn);
             var baseRecordReference = FileReference.Parse(entry.RawStructure);
-            var baseRecord = _mftReader.RandomReadAt((int)baseRecordReference.MftIndex); 
-            SearchRoutineMultiple(baseRecord, (int)baseRecordReference.MftIndex, name, path);
+            var baseRecord = _mftReader.RandomReadAt(baseRecordReference.MftIndex); 
+            SearchRoutineMultiple(baseRecord, baseRecordReference.MftIndex, name, path);
             _ = path.Pop();
         }
 
@@ -190,8 +190,8 @@ public class DfsFileSearcher : IDisposable
                 
                 path.Push(fn);
                 var baseRecordReference = FileReference.Parse(entry.RawStructure);
-                var baseRecord = _mftReader.RandomReadAt((int)baseRecordReference.MftIndex);
-                SearchRoutineMultiple(baseRecord, (int)baseRecordReference.MftIndex, name, path);
+                var baseRecord = _mftReader.RandomReadAt(baseRecordReference.MftIndex);
+                SearchRoutineMultiple(baseRecord, baseRecordReference.MftIndex, name, path);
                 _ = path.Pop();
             }
         }
@@ -206,7 +206,7 @@ public class DfsFileSearcher : IDisposable
         return TreeSearch(root, alloc, name);
     }
     
-    private (IndexRoot root, IndexAllocation? allocation) GetIndexFromMftRecord(in MftRecord record, int recordIndex)
+    private (IndexRoot root, IndexAllocation? allocation) GetIndexFromMftRecord(in MftRecord record, long recordIndex)
     {
         var attrListAttribute = record.Attributes.FirstOrDefault(attr => attr.Header.Type == AttributeType.AttributeList);
         if (attrListAttribute != default)
@@ -226,12 +226,12 @@ public class DfsFileSearcher : IDisposable
     }
     
     private (IndexRoot root, IndexAllocation? allocation) GetIndexFromAttributeList(in MftRecord baseRecord,
-        in AttributeList attrList, int baseRecordIndex)
+        in AttributeList attrList, long baseRecordIndex)
     {
         var rootListEntry = attrList.Entries.First(entry => entry.AttributeType == AttributeType.IndexRoot);
         var rootMftRecord = rootListEntry.RecordReference.MftIndex == baseRecordIndex
             ? baseRecord
-            : _mftReader.RandomReadAt((int)rootListEntry.RecordReference.MftIndex);
+            : _mftReader.RandomReadAt(rootListEntry.RecordReference.MftIndex);
         
         var rootData = rootMftRecord.Attributes.First(attr => attr.Header.Type == AttributeType.IndexRoot)
             .GetAttributeData(_dataReader).ToIndexRoot();
@@ -246,7 +246,7 @@ public class DfsFileSearcher : IDisposable
         else if (allocMftIndex == rootListEntry.RecordReference.MftIndex)
             allocMftRecord = rootMftRecord;
         else
-            allocMftRecord = _mftReader.RandomReadAt((int)allocMftIndex);
+            allocMftRecord = _mftReader.RandomReadAt(allocMftIndex);
         
         var allocData = allocMftRecord.Attributes.First(attr => attr.Header.Type == AttributeType.IndexAllocation)
             .GetAttributeData(_dataReader).ToIndexAllocation(_indexRecordSize, _sectorSize);
@@ -370,7 +370,7 @@ public class DfsFileSearcher : IDisposable
         return null;
     }
     
-    private (MftRecord root, int rootIndex) GetRootDirectory()
+    private (MftRecord root, long rootIndex) GetRootDirectory()
     {
         var options = new MftIteratorOptions()
         {

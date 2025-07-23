@@ -22,8 +22,8 @@ public class MftReader
     /// <summary>
     /// Current 0-based MFT index
     /// </summary>
-    public int MftIndex { get => _mftIndex; set => SetMftIndex(value); }
-    private int _mftIndex; // global 0-based index of the current mft record
+    public long MftIndex { get => _mftIndex; set => SetMftIndex(value); }
+    private long _mftIndex; // global 0-based index of the current mft record
     
     private readonly MftStream _stream;
     private readonly ReadOnlyCollection<DataRun> _mftRuns;
@@ -41,7 +41,7 @@ public class MftReader
         MftIndex = 0;
     }
 
-    private void SetMftIndex(int mftIndex)
+    private void SetMftIndex(long mftIndex)
     {
         var position = MftIndexToStreamOffset(mftIndex);
         if (position == -1)
@@ -51,7 +51,7 @@ public class MftReader
         _stream.Position = position;
     }
 
-    private long MftIndexToStreamOffset(int mftIndex)
+    private long MftIndexToStreamOffset(long mftIndex)
     {
         if (mftIndex < 0)
             throw new ArgumentException("Index should be greater than 0");
@@ -81,7 +81,7 @@ public class MftReader
     /// </summary>
     /// <param name="mftIndex">0-based index of a record</param>
     /// <returns>Parsed record</returns>
-    public MftRecord RandomReadAt(int mftIndex)
+    public MftRecord RandomReadAt(long mftIndex)
     {
         var position = MftIndexToStreamOffset(mftIndex);
         var rawRecord = _stream.ReadRawRecordAt(position);

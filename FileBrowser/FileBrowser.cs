@@ -26,7 +26,7 @@ public class FileBrowser
         _volume = volume;
         _dataReader = volume.VolumeReader;
         _mftReader = volume.MftReader;
-        _indexRecordSize = volume.BootSector.IndexRecordSize;
+        _indexRecordSize = volume.BootSector.IndexRecordSizeInBytes;
         _sectorSize = volume.BootSector.SectorSize;
         _rootName = Encoding.Unicode.GetBytes(".");
         InitRoot();
@@ -175,7 +175,7 @@ public class FileBrowser
         _pathStack.Push(folder);
     }
     
-    private (MftRecord root, int rootIndex) GetRootDirectory()
+    private (MftRecord root, long rootIndex) GetRootDirectory()
     {
         var options = new MftIteratorOptions()
         {
@@ -202,7 +202,7 @@ public class FileBrowser
         throw new Exception("""Couldn't find the root (".") of the $I30 index""");
     }
     
-    private (IndexRoot root, IndexAllocation? allocation) GetIndexFromMftRecord(in MftRecord record, int recordIndex)
+    private (IndexRoot root, IndexAllocation? allocation) GetIndexFromMftRecord(in MftRecord record, long recordIndex)
     {
         var attrListAttribute = record.Attributes.FirstOrDefault(attr => attr.Header.Type == AttributeType.AttributeList);
         if (attrListAttribute != default)
@@ -222,12 +222,12 @@ public class FileBrowser
     }
     
     private (IndexRoot root, IndexAllocation? allocation) GetIndexFromAttributeList(in MftRecord baseRecord,
-        in AttributeList attrList, int baseRecordIndex)
+        in AttributeList attrList, long baseRecordIndex)
     {
         var rootListEntry = attrList.Entries.First(entry => entry.AttributeType == AttributeType.IndexRoot);
         var rootMftRecord = rootListEntry.RecordReference.MftIndex == baseRecordIndex
             ? baseRecord
-            : _mftReader.RandomReadAt((int)rootListEntry.RecordReference.MftIndex);
+            : _mftReader.RandomReadAt(rootListEntry.RecordReference.MftIndex);
         
         var rootData = rootMftRecord.Attributes.First(attr => attr.Header.Type == AttributeType.IndexRoot)
             .GetAttributeData(_dataReader).ToIndexRoot();
@@ -242,7 +242,7 @@ public class FileBrowser
         else if (allocMftIndex == rootListEntry.RecordReference.MftIndex)
             allocMftRecord = rootMftRecord;
         else
-            allocMftRecord = _mftReader.RandomReadAt((int)allocMftIndex);
+            allocMftRecord = _mftReader.RandomReadAt(allocMftIndex);
         
         var allocData = allocMftRecord.Attributes.First(attr => attr.Header.Type == AttributeType.IndexAllocation)
             .GetAttributeData(_dataReader).ToIndexAllocation(_indexRecordSize, _sectorSize);

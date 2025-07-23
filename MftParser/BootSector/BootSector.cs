@@ -16,15 +16,15 @@ public readonly record struct BootSector(ulong OemId, BiosParamsBlock Bpb, Exten
     /// <summary>
     /// Size of a single cluster in bytes
     /// </summary>
-    public int ClusterSize => Bpb.BytesPerSector * Bpb.SectorsPerCluster;
+    public int ClusterSize => Bpb.ClusterSize;
     /// <summary>
     /// Size of a single MFT record in bytes
     /// </summary>
-    public int MftRecordSize => GetMftRecordByteSize();
+    public int MftRecordSizeInBytes => NormalizeByteClusterSize(ExtBpb.MftRecordSize);
     /// <summary>
     /// Size of a single INDX record in bytes
     /// </summary>
-    public int IndexRecordSize => GetIndexRecordByteSize();
+    public int IndexRecordSizeInBytes => NormalizeByteClusterSize(ExtBpb.IndexRecordSize);
     /// <summary>
     /// Byte offset to the start of the volume's MFT
     /// </summary>
@@ -52,12 +52,9 @@ public readonly record struct BootSector(ulong OemId, BiosParamsBlock Bpb, Exten
         
         return new BootSector(oemId, bpb, extBpb, bootstrap.ToArray());
     }
-    
-    private int GetMftRecordByteSize() => ExtBpb.ClustersPerMftRecord > 0
-        ? ExtBpb.ClustersPerMftRecord * ClusterSize
-        : 1 << -ExtBpb.ClustersPerMftRecord; // 2^abs(value)
 
-    private int GetIndexRecordByteSize() => ExtBpb.ClustersPerIndexRecord > 0
-        ? ExtBpb.ClustersPerIndexRecord * ClusterSize 
-        : 1 << -ExtBpb.ClustersPerMftRecord; // 2^abs(value)
+    // refer to ExtendedBpb.MftRecordSize and ExtendedBpb.IndexRecordSize for details
+    private int NormalizeByteClusterSize(sbyte value) => value > 0
+        ? value * ClusterSize
+        : 1 << -value; // 2^abs(value)
 }

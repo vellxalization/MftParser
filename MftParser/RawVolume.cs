@@ -47,7 +47,7 @@ public class RawVolume : IDisposable
 
         dataReaderStream.Position = 0;
         VolumeReader = new VolumeDataReader(dataReaderStream, BootSector.SectorSize, BootSector.ClusterSize, 
-            BootSector.IndexRecordSize);
+            BootSector.IndexRecordSizeInBytes);
     }
     
     private MasterFileTable CreateMft(FileStream volumeStream)
@@ -55,7 +55,7 @@ public class RawVolume : IDisposable
         var mftFile = ReadMftFile(volumeStream);
         var dataAttribute = mftFile.Attributes.First(attribute => attribute.Header.Type == AttributeType.Data);
         var dataRuns = DataRun.ParseDataRuns(dataAttribute.Value);
-        var mft = new MasterFileTable(BootSector.MftRecordSize, BootSector.SectorSize, BootSector.ClusterSize, dataRuns, _volumeHandle);
+        var mft = new MasterFileTable(BootSector.MftRecordSizeInBytes, BootSector.SectorSize, BootSector.ClusterSize, dataRuns, _volumeHandle);
         
         return mft;
     }
@@ -63,7 +63,7 @@ public class RawVolume : IDisposable
     private MftRecord ReadMftFile(FileStream volumeStream)
     {
         // first file of the table is the $MFT
-        var buffer = new Span<byte>(new byte[BootSector.MftRecordSize]);
+        var buffer = new Span<byte>(new byte[BootSector.MftRecordSizeInBytes]);
         volumeStream.Seek(BootSector.MftStartOffset, SeekOrigin.Begin);
         volumeStream.ReadExactly(buffer);
         var parsedMftFile = MftRecord.Parse(buffer, BootSector.SectorSize);

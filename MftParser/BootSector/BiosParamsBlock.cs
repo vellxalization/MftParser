@@ -12,6 +12,11 @@
 public readonly record struct BiosParamsBlock(ushort BytesPerSector, byte SectorsPerCluster, byte MediaDescriptor, 
     ushort SectorsPerTrack, ushort NumberOfHeads, uint HiddenSectors)
 {
+    /// <summary>
+    /// Size of a single cluster in bytes
+    /// </summary>
+    public int ClusterSize => BytesPerSector * SectorsPerCluster;
+    
     public static BiosParamsBlock Parse(Span<byte> rawBpb)
     {
         var reader = new SpanBinaryReader(rawBpb);
